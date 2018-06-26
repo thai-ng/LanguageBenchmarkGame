@@ -19,3 +19,4 @@ Finally, remember the goal is to make the fastest program possible that can comp
 * Any number of threads/processes can be spawned
 * The process(es) shouldn't use any OS-specific calls to make itself faster
 * Memory usage is limited to 128MB
+* You only really care about wall-clock time, but be wary of using 

@@ -1,14 +1,37 @@
-import os, sys, hashlib
+import os, sys, checksums
 import argparse
 
-def scan_directory(dir_name):
-    """Returns a dictionary of filename to checksum"""
+def select_checksum(args_dict):
+    retVal = checksums.MD5()
+    options = {'adler32': checksums.Adler32, 'crc': checksums.CRC32, 'sha1': checksums.SHA1, 'sha2': checksums.SHA2, 'md5': checksums.MD5}
 
-    pass
+    for name, function in options.items():
+        if args_dict[name]:
+            print("Using {0} checksum algorithm".format(name.upper()))
+            retVal = function
+
+    return retVal()
+# end select_checksum
+
+def scan_directory(dir_name, checksum):
+    """Returns a dictionary of filename to checksum"""
+    # TODO
+    return {}
+
+def reconcile(info_a, info_b):
+    """Returns a tuple with the changes that must be applied between info_a and info_b"""
+    # TODO
+    return (1,)
 
 def main(args):
-    print(args)
-    pass
+    # choose the checksum strategy and scan the files
+    checksum = select_checksum(args.__dict__)
+    scan_a = scan_directory(args.directory_a, checksum)
+    scan_b = scan_directory(args.directory_a, checksum)
+
+    # check the changes and write to the file
+    changes = reconcile(scan_a, scan_b)
+#end main
 	
 def setup_arguments():
     parser = argparse.ArgumentParser(description="Reference implementation of the language benchmarking trial")
