@@ -1,3 +1,4 @@
 .vscode/*
 *.pyc
 *.patch
+*/node_modules/*
