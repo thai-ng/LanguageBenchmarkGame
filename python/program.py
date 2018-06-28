@@ -9,7 +9,6 @@ def select_checksum(args_dict):
 
     for name, function in options.items():
         if args_dict[name]:
-            print("Using {0} checksum algorithm".format(name.upper()))
             retVal = function
 
     return retVal
@@ -61,12 +60,12 @@ def reconcile(info_a, info_b):
     patch_info_a = {}
     patch_info_a["ADD"] = [info_b[x] for x in (paths_b - paths_a)]
     patch_info_a["UNCHANGED"] = [info_a[x] for x in unchaged_paths]
-    patch_info_a["CONFLICT"] = { x: (info_a[x], info_b[x]) for x in conflicts}
+    patch_info_a["CONFLICT"] = [info_a[x] for x in conflicts]
     
     patch_info_b = {}
     patch_info_b["ADD"] = [info_a[x] for x in (paths_a - paths_b)]
     patch_info_b["UNCHANGED"] = [info_b[x] for x in unchaged_paths]
-    patch_info_b["CONFLICT"] = { x: (info_a[x], info_b[x]) for x in conflicts}
+    patch_info_b["CONFLICT"] = [info_b[x] for x in conflicts]
 
     return (patch_info_a,patch_info_b)
 # end reconcile
@@ -103,6 +102,8 @@ def write_result(patch_tuple, args):
 def main(args):
     # choose the checksum strategy and scan the files
     checksum = select_checksum(args.__dict__)
+
+    print("Starting diff of '{0}' and '{1}' ({2})".format(args.directory_a, args.directory_b, checksum))
     scan_a = scan_directory(args.directory_a, checksum)
     scan_b = scan_directory(args.directory_b, checksum)
 
@@ -115,7 +116,7 @@ def setup_arguments():
     parser = argparse.ArgumentParser(description="Reference implementation of the language benchmarking trial")
     parser.add_argument('directory_a', metavar="dir_a", type=str, help="Directory to parse")
     parser.add_argument('directory_b', metavar="dir_b", type=str, help="Directory to parse")
-    parser.add_argument('--ignore-unchanged', action='store_true', help="Ignore unchagned files in the final output")
+    parser.add_argument('--ignore-unchanged', '-u', action='store_true', help="Ignore unchagned files in the final output")
 
     checksum_action = parser.add_mutually_exclusive_group()
     checksum_action.add_argument("--md5", action='store_true', help="MD5 hash (default)")
@@ -129,4 +130,8 @@ def setup_arguments():
 if __name__=="__main__":
     argmaker = setup_arguments()
     args = argmaker.parse_args()
+    
+    # Make absolute paths before handing it off
+    args.directory_a = os.path.abspath(args.directory_a)
+    args.directory_b = os.path.abspath(args.directory_b)
     main(args)
