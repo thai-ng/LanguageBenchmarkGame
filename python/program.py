@@ -5,7 +5,7 @@ import argparse, datetime
 def select_checksum(args_dict):
     """ Returns a pointer to the constructor of the correct checksum class  """
     retVal = checksums.MD5
-    options = {'adler32': checksums.Adler32, 'crc': checksums.CRC32, 'sha1': checksums.SHA1, 'sha2': checksums.SHA2, 'md5': checksums.MD5}
+    options = {'adler32': checksums.Adler32, 'crc': checksums.CRC32, 'sha1': checksums.SHA1, 'sha256': checksums.SHA2, 'md5': checksums.MD5}
 
     for name, function in options.items():
         if args_dict[name]:
@@ -73,18 +73,18 @@ def reconcile(info_a, info_b):
 def write_patch_results(directory_name, patch_info, result_file, ignore_unchanged):
     result_file.write("{0}\n".format(directory_name))
     symbol_map = {"ADD": "+", "UNCHANGED": "=", "CONFLICT": "!"}
+
+    # Serialize and sort the results
+    serial_results = [(symbol_map[op], a_file) for op, files in patch_info.items() for a_file in files]
+    serial_results.sort(key=lambda element: element[1].filepath)
     
-    for operation, items in patch_info.items():
-        if ignore_unchanged and operation=="UNCHANGED":
+    for line in serial_results:
+        if ignore_unchanged and line[0]=="=":
             continue
 
-        symbol = symbol_map[operation]
-        for file_info in items:
-            result_file.write("{0} {1}\n".format(symbol, file_info))
-        # end file_info
-
-        result_file.write("\n")
-    #end patch_info.items
+        result_file.write("{0} {1}\n".format(*line))
+    #end for
+# end write_patch_results
 
 def write_result(patch_tuple, args):
     """Creates the final output of the program: a patch recommendation"""
@@ -104,12 +104,14 @@ def main(args):
     checksum = select_checksum(args.__dict__)
 
     print("Starting diff of '{0}' and '{1}' ({2})".format(args.directory_a, args.directory_b, checksum))
+    print("Starting at {0}".format(datetime.datetime.now()))
     scan_a = scan_directory(args.directory_a, checksum)
     scan_b = scan_directory(args.directory_b, checksum)
 
     # check the changes and write to the file
     changes = reconcile(scan_a, scan_b)
     write_result(changes, args)
+    print("Finished at {0}".format(datetime.datetime.now()))
 #end main
 	
 def setup_arguments():
@@ -123,7 +125,7 @@ def setup_arguments():
     checksum_action.add_argument("--adler32", action='store_true', help="Adler 32-bit checksum")
     checksum_action.add_argument("--crc", action='store_true', help="Cyclic Redundancy Check 32-bit checksum")
     checksum_action.add_argument("--sha1", action='store_true', help="SHA1 hash")
-    checksum_action.add_argument("--sha2", action='store_true', help="SHA256 hash")
+    checksum_action.add_argument("--sha256", action='store_true', help="SHA256 hash")
     return parser
 #end setup_arguments
 
