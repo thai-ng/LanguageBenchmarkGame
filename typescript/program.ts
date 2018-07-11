@@ -5,12 +5,10 @@ import * as directory from './directory'
 import { ArgumentHolder } from './argumentholder'
 
 
-let args = new ArgumentHolder();
-
 function scanDirectory(directoryPath: string, checksum: Function) : Map<string, string>{
     let retVal = new Map<string,string>()
     directory.walk(directoryPath, function(){
-        
+        //TODO
     });
 
     return retVal
@@ -25,6 +23,7 @@ function main(args: ArgumentHolder){
     // TODO
 }
 
+let args = new ArgumentHolder();
 commander
     .version("0.0.1")
     .description("Typescript implementation of the language benchmarking trial")
