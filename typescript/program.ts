@@ -1,12 +1,29 @@
 // program.ts
-import * as commander from 'commander'
-import {ArgumentHolder} from './argumentholder'
+import commander from 'commander'
+import * as fs from 'fs'
+import * as directory from './directory'
+import { ArgumentHolder } from './argumentholder'
 
-function main(){
-    // TODO
-}
 
 let args = new ArgumentHolder();
+
+function scanDirectory(directoryPath: string, checksum: Function) : Map<string, string>{
+    let retVal = new Map<string,string>()
+    directory.walk(directoryPath, function(){
+        
+    });
+
+    return retVal
+}
+
+function main(args: ArgumentHolder){
+    console.log(`Starting diff of ${args.directoryA} and ${args.directoryB} (checksum: ${args.checksumName})`)
+    console.log(`Starting at ${(new Date()).toISOString()}`)
+
+    let scan_a = scanDirectory(args.directoryA, args.checksumGenerator)
+
+    // TODO
+}
 
 commander
     .version("0.0.1")
@@ -30,9 +47,9 @@ commander.parse(process.argv)
 
 if (args.directoryInfoIsMissing()){
     console.error("Directory information is missing!")
-    commander.outputHelp();
+    commander.outputHelp()
     process.exit(1)
 }
 
 args.verifyAndSelectChecksum(commander);
-main()
+main(args);

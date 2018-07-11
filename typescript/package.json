@@ -1,0 +1,21 @@
+{
+  "name": "ts-lang-benchmark",
+  "version": "0.1.0",
+  "description": "Typescript implementation of language benchmark trial",
+  "main": "program.ts",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "",
+  "license": "ISC",
+  "devDependencies": {
+    "typescript": "^2.5.3"
+  },
+  "dependencies": {
+    "@types/node": "*",
+    "@types/commander": "*",
+    "@types/pluralize": "0.0.27",
+    "commander": "*",
+    "ts-node": "*"
+  }
+}
