@@ -7,12 +7,12 @@ export class ArgumentHolder{
     checksumName: string = "";
     checksumGenerator: Function = () => {};
 
-    directoryInfoIsMissing(){
+    public directoryInfoIsMissing(){
         return typeof this.directoryA == "undefined" || typeof this.directoryB == "undefined"
             || this.directoryA.length < 3 || this.directoryB.length < 3
     }
 
-    verifyAndSelectChecksum(args: any){
+    public verifyAndSelectChecksum(args: any){
         const options = ['md5', 'sha1', 'sha256'];
         let selection = "";
         options.forEach(functionName => {
@@ -21,14 +21,19 @@ export class ArgumentHolder{
                 throw new Error(`Expected only option '${selection}' or '${functionName}'`);
             }
 
-            selection = functionName;
+            if(selection.length < 1){
+                selection = functionName;
+            }
         });
 
+        if(selection.length < 1){
+            selection = 'md5';
+        }
+
         this.checksumName = selection;
-        this.checksumGenerator = crypto.createHash
     }
 
-    getChecksumObject(){
-        return this.checksumGenerator(this.checksumName)
+    public getChecksumObject(){
+        return crypto.createHash(this.checksumName)
     }
 }

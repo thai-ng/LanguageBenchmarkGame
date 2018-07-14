@@ -1,29 +1,25 @@
 import * as fs from 'fs'
+import * as util from 'util'
 import * as path from 'path'
 
-export function visit(err: Object, files: Array<string>, root: string, action: (filepath: string) => void){
-    if(err){
-        return;
+export const readdirAsync = util.promisify(fs.readdir)
+export const statAsync = util.promisify(fs.stat)
+
+export async function visit(files: Array<string>, root: string, action: (filepath: string) => void){
+    // array.forEach is apparently synchronous, so might as well do this
+    for(const file of files){
+        let filepath = path.join(root, file)
+        let stats = await statAsync(filepath)
+        if(stats.isDirectory()){
+            walk(filepath, action)
+        }
+        else if (typeof action != "undefined"){
+            await action(filepath)
+        }
     }
-
-    files.forEach(element => {
-        let filepath = path.join(root, element)
-
-        fs.stat(filepath, function(err, stats){
-            if(stats.isDirectory()){
-                walk(filepath, action)
-            }
-            else if (typeof action != "undefined"){
-                action(filepath)
-            }
-        });
-    });
 }
 
-export function walk(basePath: string, action: (filepath: string) => void){
-    const curry_visit = function(err: Object, files: Array<string>) {
-        visit(err, files, basePath, action)
-    }
-
-    fs.readdir(basePath, curry_visit)
+export async function walk(basePath: string, action: (filepath: string) => void){
+    let files = await readdirAsync(basePath)
+    await visit(files, basePath, action)
 }
