@@ -5,7 +5,6 @@ import * as directory from './directory'
 import { ArgumentHolder } from './argumentholder'
 import { FileResult } from './fileresult';
 
-
 async function scanDirectory(directoryPath: string, args: ArgumentHolder) : Promise<Map<string, FileResult>>{
     let retVal = new Map<string,FileResult>()
 
@@ -18,9 +17,10 @@ async function scanDirectory(directoryPath: string, args: ArgumentHolder) : Prom
         return new Promise(function(resolve, reject) {
             fileStream.on('end', () => {
                 const filehash = hasher.digest('hex')
-                retVal.set(filepath, 
+                const canonicalName = filepath.replace(directoryPath, '')
+                retVal.set(canonicalName, 
                     new FileResult(
-                        filepath,
+                        canonicalName,
                         filehash,
                         stats.size,
                         stats.mtimeMs
@@ -35,7 +35,31 @@ async function scanDirectory(directoryPath: string, args: ArgumentHolder) : Prom
     return retVal
 }
 
+async function reconcile(info_a: Map<string, FileResult>, info_b: Map<string, FileResult>): Promise<[Map<string, FileResult>, Map<string, FileResult>]>{
+    let paths_a = new Set(info_a.keys())
+    let paths_b = new Set(info_b.keys())
+
+    // TODO: DEBUG JS SETS
+    // looks like that union operations isn't really working
+    let suspectedConflicts = new Set([...paths_a].filter(x => paths_b.has(x)))
+    let unchangedPaths = new Set(
+        [...suspectedConflicts].filter(x => 
+            (info_a.get(x) as FileResult).equals(info_b.get(x) as FileResult)
+    ))
+
+    let conflicts = new Set([...suspectedConflicts].filter(x => !unchangedPaths.has(x)))
+
+    let patch_info_a = new Map<string, FileResult>()
+    // TODO!
+
+    let patch_info_b = new Map<string, FileResult>()
+    // TODO!
+
+    return [patch_info_a, patch_info_b]
+}
+
 async function main(args: ArgumentHolder){
+    args.verifyArguments(commander);
     console.log(`Starting diff of ${args.directoryA} and ${args.directoryB} (checksum: ${args.checksumName})`)
     console.log(`Starting at ${(new Date()).toISOString()}`)
 
@@ -44,6 +68,7 @@ async function main(args: ArgumentHolder){
         [scanDirectory(args.directoryA, args), 
             scanDirectory(args.directoryB, args)])
 
+    const changes = await reconcile(scan_a, scan_b)
     // TODO: Diff
 }
 
@@ -74,5 +99,4 @@ if (args.directoryInfoIsMissing()){
     process.exit(1)
 }
 
-args.verifyAndSelectChecksum(commander);
 main(args);
