@@ -35,27 +35,44 @@ async function scanDirectory(directoryPath: string, args: ArgumentHolder) : Prom
     return retVal
 }
 
-async function reconcile(info_a: Map<string, FileResult>, info_b: Map<string, FileResult>): Promise<[Map<string, FileResult>, Map<string, FileResult>]>{
-    let paths_a = new Set(info_a.keys())
-    let paths_b = new Set(info_b.keys())
+async function reconcile(infoA: Map<string, FileResult>, infoB: Map<string, FileResult>): Promise<[Map<string, FileResult[]>, Map<string, FileResult[]>]>{
+    const pathsA = new Set(infoA.keys())
+    const pathsB = new Set(infoB.keys())
 
-    // TODO: DEBUG JS SETS
-    // looks like that union operations isn't really working
-    let suspectedConflicts = new Set([...paths_a].filter(x => paths_b.has(x)))
-    let unchangedPaths = new Set(
+    const suspectedConflicts = new Set([...pathsA].filter(x => pathsB.has(x)))
+    const unchangedPaths = new Set(
         [...suspectedConflicts].filter(x => 
-            (info_a.get(x) as FileResult).equals(info_b.get(x) as FileResult)
+            (infoA.get(x) as FileResult).equals(infoB.get(x) as FileResult)
     ))
+    const conflicts = new Set([...suspectedConflicts].filter(x => !unchangedPaths.has(x)))
 
-    let conflicts = new Set([...suspectedConflicts].filter(x => !unchangedPaths.has(x)))
+    let pathInfoA = new Map<string, FileResult[]>()
+    pathInfoA.set(
+        "ADD", 
+        [...pathsB].filter(x => !pathsA.has(x))
+            .map(x => infoB.get(x)) as FileResult[])
+    pathInfoA.set(
+        "UNCHANGED",
+        [...unchangedPaths].map(x => infoA.get(x)) as FileResult[]
+    )
+    pathInfoA.set(
+        "CONFLICT", 
+        [...conflicts].map(x => infoA.get(x)) as FileResult[])
 
-    let patch_info_a = new Map<string, FileResult>()
-    // TODO!
+    let patchInfoB = new Map<string, FileResult[]>()
+    patchInfoB.set(
+        "ADD", 
+        [...pathsA].filter(x => !pathsB.has(x))
+            .map(x => infoA.get(x)) as FileResult[])
+    patchInfoB.set(
+        "UNCHANGED",
+        [...unchangedPaths].map(x => infoB.get(x)) as FileResult[]
+    )
+    patchInfoB.set(
+        "CONFLICT", 
+        [...conflicts].map(x => infoB.get(x)) as FileResult[])
 
-    let patch_info_b = new Map<string, FileResult>()
-    // TODO!
-
-    return [patch_info_a, patch_info_b]
+    return [pathInfoA, patchInfoB]
 }
 
 async function main(args: ArgumentHolder){
@@ -64,11 +81,11 @@ async function main(args: ArgumentHolder){
     console.log(`Starting at ${(new Date()).toISOString()}`)
 
     // Run in parallel, hope it's faster
-    let [scan_a, scan_b] = await Promise.all(
+    let [scanA, scanB] = await Promise.all(
         [scanDirectory(args.directoryA, args), 
             scanDirectory(args.directoryB, args)])
 
-    const changes = await reconcile(scan_a, scan_b)
+    const changes = await reconcile(scanA, scanB)
     // TODO: Diff
 }
 
