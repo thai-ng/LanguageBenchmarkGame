@@ -19,6 +19,8 @@ export class FileResult{
     }
 
     public toString() : string{
-        return `${this.filepath} (${this.date} | ${this.size} bytes)`
+        const dateObject = new Date(this.date)
+        const dateString = dateObject.toISOString().split('T')
+        return `${this.filepath} (${dateString[0]} ${dateString[1].split('.')[0]} | ${this.size} bytes)`
     }
 }
