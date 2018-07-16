@@ -5,7 +5,6 @@ import * as util from 'util'
 import * as directory from './directory'
 import { ArgumentHolder } from './argumentholder'
 import { FileResult } from './fileresult';
-import { ENETRESET } from 'constants';
 
 type PatchInformation = Map<string, FileResult[]>
 type PatchInformationTuple = [PatchInformation, PatchInformation]
