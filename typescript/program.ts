@@ -1,9 +1,16 @@
 // program.ts
 import commander from 'commander'
 import * as fs from 'fs'
+import * as util from 'util'
 import * as directory from './directory'
 import { ArgumentHolder } from './argumentholder'
 import { FileResult } from './fileresult';
+import { ENETRESET } from 'constants';
+
+type PatchInformation = Map<string, FileResult[]>
+type PatchInformationTuple = [PatchInformation, PatchInformation]
+
+const SymbolMap = new Map<string, string>([["ADD","+"],["UNCHANGED","="],["CONFLICT","!"]])
 
 async function scanDirectory(directoryPath: string, args: ArgumentHolder) : Promise<Map<string, FileResult>>{
     let retVal = new Map<string,FileResult>()
@@ -35,7 +42,7 @@ async function scanDirectory(directoryPath: string, args: ArgumentHolder) : Prom
     return retVal
 }
 
-async function reconcile(infoA: Map<string, FileResult>, infoB: Map<string, FileResult>): Promise<[Map<string, FileResult[]>, Map<string, FileResult[]>]>{
+function reconcile(infoA: Map<string, FileResult>, infoB: Map<string, FileResult>): PatchInformationTuple{
     const pathsA = new Set(infoA.keys())
     const pathsB = new Set(infoB.keys())
 
@@ -75,6 +82,43 @@ async function reconcile(infoA: Map<string, FileResult>, infoB: Map<string, File
     return [pathInfoA, patchInfoB]
 }
 
+function writePatchResult(directoryName: string, patchInfo: PatchInformation, resultOutput: fs.WriteStream, ignoreUnchanged: boolean){
+    resultOutput.write(`${directoryName}\n`)
+
+    let textResults = [...patchInfo.entries()]
+        .map(operation => 
+            operation["1"].map(file => 
+                [SymbolMap.get(operation["0"]), file] as [string, FileResult]))
+        .reduce((accumulator, current) => [...accumulator, ...current])
+
+    const sortedLines = textResults
+        .sort((a,b) => a["1"].filepath.localeCompare(b["1"].filepath))
+
+    for(const line of sortedLines){
+        if(ignoreUnchanged && line["0"]=="="){ continue }
+
+        resultOutput.write(`${line["0"]} ${line["1"].toString()}\n`)
+    }
+}
+
+async function writeResults(patchInformation: PatchInformationTuple, args: ArgumentHolder){  
+    const outputFile = fs.createWriteStream('reference.patch', 'utf8')
+    
+    outputFile.on('ready', () => {
+        outputFile.write(`# Results for ${(new Date()).toISOString()}\n`)
+        outputFile.write(`# Reconciled '${args.directoryA}' '${args.directoryB}'\n`)
+        writePatchResult(args.directoryA, patchInformation[0], outputFile, args.ignoreUnchanged)
+        outputFile.write('\n')
+        writePatchResult(args.directoryB, patchInformation[1], outputFile, args.ignoreUnchanged)
+        outputFile.end('\n')
+    })
+    
+    return new Promise(function(resolve, reject){
+        outputFile.on('finish', resolve)
+        outputFile.on('error', reject)
+    })
+}
+
 async function main(args: ArgumentHolder){
     args.verifyArguments(commander);
     console.log(`Starting diff of ${args.directoryA} and ${args.directoryB} (checksum: ${args.checksumName})`)
@@ -85,8 +129,9 @@ async function main(args: ArgumentHolder){
         [scanDirectory(args.directoryA, args), 
             scanDirectory(args.directoryB, args)])
 
-    const changes = await reconcile(scanA, scanB)
-    // TODO: Diff
+    const changes = reconcile(scanA, scanB)
+    await writeResults(changes, args)
+    console.log(`Finished at ${(new Date()).toISOString()}`)
 }
 
 let args = new ArgumentHolder();

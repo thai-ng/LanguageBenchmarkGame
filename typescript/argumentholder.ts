@@ -8,12 +8,15 @@ export class ArgumentHolder{
     checksumName: string = "";
     checksumGenerator: Function = () => {};
 
+    ignoreUnchanged: boolean = false;
+
     public directoryInfoIsMissing(){
         return typeof this.directoryA == "undefined" || typeof this.directoryB == "undefined"
             || this.directoryA.length < 3 || this.directoryB.length < 3
     }
 
     public verifyArguments(args: any){
+        this.ignoreUnchanged = args["ignoreUnchanged"] || false
         this.selectChecksum(args);
         this.directoryA = this.regularizeDirectoryName(this.directoryA)
         this.directoryB = this.regularizeDirectoryName(this.directoryB)
