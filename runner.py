@@ -27,11 +27,11 @@ def init(args):
     with open(os.path.join(dir_name,"run.py"), 'w') as run_file:
         run_file.write("""#!/usr/bin/env python
 
-def run(args):
+def run(cmd_args):
     raise NotImplementedError("This must be implemented before running")
 #end run
 
-def install(args):
+def install(cmd_args):
     raise NotImplementedError("This must be implemented before running")
 #end run
 
@@ -59,9 +59,8 @@ def run(args):
     print("Arguments: {}".format(sub_args))
     print("")
 
-    # Change dir, and load the runner from there. This may or may not override some functions
-    # NOTE: DON'T EXEC RANDOM FILES
-    exec(open(os.path.join('.',dir_name,'run.py')).read())
+    os.chdir(dir_name)
+    exec(open(os.path.join('.','run.py')).read())
     run(sub_args)
 #end run
 
@@ -91,6 +90,7 @@ def benchmark(args):
 if __name__=="__main__":
     args = sys.argv[1:]
     working_dir = os.getcwd()
+    __name__ = "__runner__"
 
     try:
         operation_name = args[0]
