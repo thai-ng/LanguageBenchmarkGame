@@ -17,7 +17,7 @@ class FileResult():
     def __str__(self):
         return "{0} ({1} | {2} bytes)".format(\
             self.filepath,\
-            datetime.fromtimestamp(self.modified_date),\
+            datetime.fromtimestamp(self.modified_date).strftime("%Y-%m-%d %H:%M:%S"),\
             self.size)
 
 #end FileResult
