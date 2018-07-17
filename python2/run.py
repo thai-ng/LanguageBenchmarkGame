@@ -10,7 +10,8 @@ def build():
 
 def run(cmd_args):
     import subprocess, os
-    process_args = ["python3", os.path.join(os.getcwd(), "program.py")] + cmd_args
+    # The only change is that we run python2 instead of python3
+    process_args = ["python2", os.path.join(os.getcwd(), '..', 'python', "program.py")] + cmd_args
     subprocess.call(process_args)
 #end run
 

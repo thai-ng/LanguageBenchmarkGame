@@ -12,6 +12,7 @@ def help(args = None):
     print(" 'init <language name>' to start implementing a new <language>")
     print(" 'run <language> [space-separated arguments]' to run a given <language> implementation with a set of [arguments]")
     print(" 'benchmark <repetitions> <language> [space-separated arguments]' run an implementation and take an average time")
+    print(" 'compare <comma-separated list of languages> <repetitions> [space-separated arguments]' run some implementations and compare the average time")
 # end help
 
 def init(args):
@@ -27,11 +28,15 @@ def init(args):
     with open(os.path.join(dir_name,"run.py"), 'w') as run_file:
         run_file.write("""#!/usr/bin/env python
 
-def run(cmd_args):
+def setup():
     raise NotImplementedError("This must be implemented before running")
 #end run
 
-def install(cmd_args):
+def build():
+    raise NotImplementedError("This must be implemented before running")
+#end run
+
+def run(cmd_args):
     raise NotImplementedError("This must be implemented before running")
 #end run
 
@@ -41,11 +46,10 @@ if __name__=="__main__":
     if os.path.basename(sys.argv[0]) == __file__:
         run(sys.argv[1:])
 # end main
-
         """)
 
     print("Initialized '{}'".format(dir_name))
-    print("Make sure to fill in the 'run' and 'install' methods")
+    print("Make sure to fill in the 'setup', 'build' and 'run' methods")
 #end init
 
 def run(args):
@@ -61,6 +65,8 @@ def run(args):
 
     os.chdir(dir_name)
     exec(open(os.path.join('.','run.py')).read())
+    setup()
+    build()
     run(sub_args)
 #end run
 
@@ -70,9 +76,12 @@ def benchmark(args):
     sub_args = args[2:]
     times = []
 
+    working_dir = os.getcwd()
     os.chdir(dir_name)
     exec(open(os.path.join('.','run.py')).read())
     import time
+    setup()
+    build()
     print("========== Starting Benchmark ==========")
     for i in range(repetitions):
         start_time = time.time()
@@ -85,7 +94,31 @@ def benchmark(args):
     average = sum(times) / repetitions
     print("")
     print("{} repetitions - average run time: {} seconds".format(repetitions, average))
+    print("")
+    
+    os.chdir(working_dir)
+    return average
 #end benchmark
+
+def compare(args):
+    dir_names = args[0].split(',')
+    if len(dir_names) == 1 and dir_names[0] == 'all':
+        dir_names = [x for x in os.listdir('.') if os.path.isdir(x) and os.path.exists(os.path.join('.',x,'run.py'))]
+        print("Selected by wildcard: {}".format(dir_names))
+
+    repetitions = args[1]
+    results = {}
+
+    for implementation in dir_names:
+        sub_args = [repetitions, implementation]
+        sub_args.extend(args[2:])
+        results[implementation] = benchmark(sub_args)
+    # end for
+
+    print("Ran {} iterations of implementation: {}".format(repetitions, dir_names))
+    for lang in results.keys().sort():
+        print("{}: {} seconds".format(lang, results[lang]))
+#end compare
 
 if __name__=="__main__":
     args = sys.argv[1:]
