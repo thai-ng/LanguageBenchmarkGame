@@ -71,6 +71,8 @@ def run(args):
 #end run
 
 def benchmark(args):
+    import time
+    
     repetitions = int(args[0])
     dir_name = args[1]
     sub_args = args[2:]
@@ -79,7 +81,7 @@ def benchmark(args):
     working_dir = os.getcwd()
     os.chdir(dir_name)
     exec(open(os.path.join('.','run.py')).read())
-    import time
+
     setup()
     build()
     print("========== Starting Benchmark ==========")
