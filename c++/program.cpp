@@ -3,10 +3,10 @@
 #include <string>
 #include <vector>
 
+#include "argument_holder.hpp"
+
 int main(int argc, char** argv){
-    std::vector<std::string> arguments;
-    auto loadArguments = [&](const char* c_str){ arguments.push_back(std::string(c_str)); };
-    
-    // ignore the 1st argument since it's the program name
-    std::for_each(&argv[1], &argv[argc], loadArguments);
+    ArgumentHolder testy;
+    std::cout << testy.Parse(argc, argv) << std::endl;
+    std::cout << testy.ChecksumName << std::endl;
 }

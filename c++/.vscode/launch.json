@@ -9,7 +9,7 @@
             "type": "cppdbg",
             "request": "launch",
             "program": "${workspaceFolder}/a.out",
-            "args": ["/media/DMZ/Queue/", "/media/DMZ-1/Queue/"],
+            "args": ["/media/DMZ/Queue/", "/media/DMZ-1/Queue/", "--adler32"],
             "stopAtEntry": false,
             "cwd": "${workspaceFolder}",
             "environment": [],

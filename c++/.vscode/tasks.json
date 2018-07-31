@@ -9,8 +9,9 @@
             "command": "g++",
             "args": [
                 "-g",
-                "-std=c++17",
-                "program.cpp"
+                "-std=c++11",
+                "*.cpp",
+                "-lboost_system", "-lboost_filesystem"
             ],
             "group": {
                 "kind": "build",

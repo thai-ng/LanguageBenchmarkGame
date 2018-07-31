@@ -9,6 +9,7 @@ def setup():
     # We assume pip is installed at least
     # TODO
     #pip.main(['install'])
+    # install libboost-filesystem-dev
     raise NotImplementedError("This must be implemented before running")
 #end run
 
