@@ -9,7 +9,7 @@ def setup():
     # We assume pip is installed at least
     # TODO
     #pip.main(['install'])
-    # install libboost-filesystem-dev
+    # install libboost-filesystem-dev libcrypto++-dev libcrypto++9v5
     raise NotImplementedError("This must be implemented before running")
 #end run
 

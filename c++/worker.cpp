@@ -1,5 +1,7 @@
 #include <iostream>
+
 #include <boost/filesystem.hpp>
+#include <cryptopp/integer.h>
 
 #include "worker.hpp"
 
@@ -9,14 +11,19 @@ namespace fs = boost::filesystem;
 std::shared_ptr<FileResult> Worker::scanDirectoryInternal(std::string path){
     // source: https://stackoverflow.com/questions/18233640/boostfilesystemrecursive-directory-iterator-with-filter
 
+    std::shared_ptr<FileResult> retVal = std::shared_ptr<FileResult>(new FileResult());
     fs::recursive_directory_iterator end, dirWalker(path);
     while(dirWalker != end){
         auto filepath = dirWalker->path().string();
-        std::cout << filepath << std::endl;
+
+        if(! fs::is_directory(dirWalker->path())){
+            std::cout << filepath << std::endl;
+        }
+        
         ++dirWalker;
     }
 
-    return nullptr;
+    return retVal;
 }
 
 // Asynchronously run scanDirectory

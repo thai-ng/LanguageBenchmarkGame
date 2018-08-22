@@ -23,6 +23,9 @@ private:
     // Internal implementation of Scan Directory
     std::shared_ptr<FileResult> scanDirectoryInternal(std::string path);
 
+    // Hashes 
+    std::string hashFile(std::string filepath);
+
 public:
     // Asynchronously run scanDirectory
     std::future<std::shared_ptr<FileResult>> scanDirectory(std::string path);
