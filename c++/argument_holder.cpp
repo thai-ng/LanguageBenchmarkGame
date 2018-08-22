@@ -1,3 +1,4 @@
+#include <iostream>
 #include <algorithm>
 #include <unordered_set>
 #include "argument_holder.hpp"
@@ -32,7 +33,7 @@ bool ArgumentHolder::Parse(std::vector<std::string>& args){
 
     std::unordered_set<std::string> hashOptions = {"--md5", "--crc", "--adler32", "--sha1", "--sha256"};
     bool hasHashOption = false;
-    for(int i=2; i < args.size() ; i++){
+    for(unsigned int i=2; i < args.size() ; i++){
         std::string& arg = args[i];
 
         // Check for ignore unchanged files flag

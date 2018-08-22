@@ -18,8 +18,7 @@ struct ArgumentHolder{
 
     ArgumentHolder();
 
+    // Parse the arguments given
     bool Parse(int argc, char** argv);
     bool Parse(std::vector<std::string>& );
-
-    // TODO: 
 };
