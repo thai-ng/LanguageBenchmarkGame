@@ -28,8 +28,8 @@ bool ArgumentHolder::Parse(int argc, char** argv){
 bool ArgumentHolder::Parse(std::vector<std::string>& args){
     fs::path pathA(args[0]), pathB(args[1]);
     
-    this->DirectoryA = pathA.normalize();
-    this->DirectoryB = pathB.normalize();
+    this->DirectoryA = pathA.normalize().remove_leaf();
+    this->DirectoryB = pathB.normalize().remove_leaf();
 
     std::unordered_set<std::string> hashOptions = {"--md5", "--crc", "--adler32", "--sha1", "--sha256"};
     bool hasHashOption = false;
