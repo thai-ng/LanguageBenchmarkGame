@@ -1,12 +1,22 @@
+#define CRYPTOPP_ENABLE_NAMESPACE_WEAK 1
+
 #include <iostream>
 #include <algorithm>
+#include <unordered_map>
 #include <unordered_set>
+
+#include <cryptopp/cryptlib.h>
+#include <cryptopp/adler32.h>
+#include <cryptopp/crc.h>
+#include <cryptopp/md5.h>
+#include <cryptopp/sha.h>
+
 #include "argument_holder.hpp"
 
 ArgumentHolder::ArgumentHolder(){
     this->DirectoryA = "";
     this->DirectoryB = "";
-    this->ChecksumName = "md5";
+    this->Checksum = checksum_ptr(new CryptoPP::Weak::MD5());
     this->ShouldIgnoreUnchanged = false;
 }
 
@@ -28,11 +38,12 @@ bool ArgumentHolder::Parse(int argc, char** argv){
 bool ArgumentHolder::Parse(std::vector<std::string>& args){
     fs::path pathA(args[0]), pathB(args[1]);
     
-    this->DirectoryA = pathA.normalize().remove_leaf();
-    this->DirectoryB = pathB.normalize().remove_leaf();
+    this->DirectoryA = pathA.normalize();
+    this->DirectoryB = pathB.normalize();
 
     std::unordered_set<std::string> hashOptions = {"--md5", "--crc", "--adler32", "--sha1", "--sha256"};
     bool hasHashOption = false;
+    std::string checksumName;
     for(unsigned int i=2; i < args.size() ; i++){
         std::string& arg = args[i];
 
@@ -49,10 +60,33 @@ bool ArgumentHolder::Parse(std::vector<std::string>& args){
                 return false;
             }
 
-            this->ChecksumName = (*entry).substr(2);
+            checksumName = (*entry).substr(2);
             hasHashOption = true;
         }
     }
 
+    this->setHash(checksumName);
     return true;
 }
+
+void ArgumentHolder::setHash(std::string hashName){
+    // Not very elegant, but simple
+    if(hashName == "md5"){
+        // Default option
+        return;
+    }
+    else if(hashName == "crc"){
+        this->Checksum = checksum_ptr( new CryptoPP::CRC32());
+    }
+    else if(hashName == "adler32"){
+        this->Checksum = checksum_ptr( new CryptoPP::Adler32());
+    }
+    else if(hashName == "sha1"){
+        this->Checksum = checksum_ptr( new CryptoPP::SHA1());
+    }
+    else if(hashName == "sha256"){
+        this->Checksum = checksum_ptr( new CryptoPP::SHA256());
+    }
+}
+
+#undef CRYPTOPP_ENABLE_NAMESPACE_WEAK

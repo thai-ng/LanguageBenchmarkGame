@@ -9,7 +9,7 @@
             "type": "cppdbg",
             "request": "launch",
             "program": "${workspaceFolder}/a.out",
-            "args": ["/media/DMZ/Queue/", "/media/DMZ-1/Queue/", "--md5"],
+            "args": ["/media/DMZ/Queue/Ongoing", "/media/DMZ-1/Queue/Ongoing", "--md5"],
             "stopAtEntry": false,
             "cwd": "${workspaceFolder}",
             "environment": [],

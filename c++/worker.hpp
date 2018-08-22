@@ -17,6 +17,9 @@ namespace fs = boost::filesystem;
 
 class Worker{
 private:
+    // An instance of the checksum function to use
+    const checksum_ptr checksumInstance;
+
     // Result of the last reconcile operation if it was saved
     std::shared_ptr<reconcile_result> lastReconcile;
 
@@ -27,6 +30,9 @@ private:
     std::string hashFile(std::string filepath);
 
 public:
+    // ctor w/ checksum object instance
+    Worker(const checksum_ptr instance);
+
     // Asynchronously run scanDirectory
     std::future<std::shared_ptr<FileResult>> scanDirectory(std::string path);
 
@@ -34,5 +40,5 @@ public:
     void Reconcile(FileResult* a, FileResult* b, bool keepResult);
 
     // Write the results to a file
-    void WriteResult(ArgumentHolder& args, std::string destination);
+    void WriteResult(std::string dirA, std::string dirB, std::string destination, bool ignoreUnchanged);
 };

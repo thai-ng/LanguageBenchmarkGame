@@ -1,5 +1,6 @@
 #pragma once
 
+#include <cryptopp/cryptlib.h>
 #include <vector>
 #include <string>
 
@@ -7,12 +8,14 @@
 
 namespace fs = boost::filesystem;
 
+typedef std::shared_ptr<CryptoPP::HashTransformation> checksum_ptr;
+
 struct ArgumentHolder{
     fs::path DirectoryA;
 
     fs::path DirectoryB;
 
-    std::string ChecksumName;
+    checksum_ptr Checksum;
 
     bool ShouldIgnoreUnchanged;
 
@@ -21,4 +24,7 @@ struct ArgumentHolder{
     // Parse the arguments given
     bool Parse(int argc, char** argv);
     bool Parse(std::vector<std::string>& );
+
+private:
+    void setHash(std::string hashName);
 };

@@ -34,16 +34,16 @@ int main(int argc, char** argv){
         return 1;
     }
 
-    Worker work;
+    Worker work(args.Checksum);
     std::cout << "Starting diff of "<< args.DirectoryA << " and " << args.DirectoryB << " ("
-        << args.ChecksumName << ")" << std::endl;
+        << args.Checksum->AlgorithmName() << ")" << std::endl;
     std::cout << "Start time " << GetTime() << std::endl;
 
     auto resultA = work.scanDirectory(args.DirectoryA.string());
     auto resultB = work.scanDirectory(args.DirectoryB.string());
 
     work.Reconcile(resultA.get().get(), resultB.get().get(), true);
-    work.WriteResult(args, "reference.patch");
+    work.WriteResult(args.DirectoryA.string(), args.DirectoryB.string(), "reference.patch", args.ShouldIgnoreUnchanged);
 
     std::cout << std::endl << "End time " << GetTime() << std::endl;
 }
