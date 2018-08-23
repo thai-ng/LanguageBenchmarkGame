@@ -9,7 +9,7 @@
 #include "argument_holder.hpp"
 #include "file_result.hpp"
 
-typedef std::vector<std::shared_ptr<FileResult>> scan_result;
+typedef std::unordered_map<std::string, std::shared_ptr<FileResult>> scan_result;
 
 typedef std::unordered_map<std::string, std::vector<FileResult>> patch_result;
 
@@ -30,6 +30,9 @@ private:
 
     // Hashes 
     std::string hashFile(std::string filepath);
+
+    // Fills the set with the keys of the scan_result
+    void populateSetWithKeys(std::unordered_set<std::string>& set, scan_result& result);
 
 public:
     // ctor w/ checksum object instance
