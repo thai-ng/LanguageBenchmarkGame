@@ -38,8 +38,11 @@ bool ArgumentHolder::Parse(int argc, char** argv){
 bool ArgumentHolder::Parse(std::vector<std::string>& args){
     fs::path pathA(args[0]), pathB(args[1]);
     
-    this->DirectoryA = pathA.normalize();
-    this->DirectoryB = pathB.normalize();
+    // Paths coming in as "/a/b/../" or "/a/." will be converted to "/a"
+    // HACK: Boost fs doesn't correctly normalize paths, it's not consistent
+    //       So we attach a "file" and use parent_path to obtain a consistent form
+    this->DirectoryA = (pathA/"x").normalize().parent_path();
+    this->DirectoryB = (pathB/"x").normalize().parent_path();
 
     std::unordered_set<std::string> hashOptions = {"--md5", "--crc", "--adler32", "--sha1", "--sha256"};
     bool hasHashOption = false;
