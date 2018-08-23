@@ -23,17 +23,30 @@ std::string Worker::hashFile(std::string filepath){
 }
 
 // Internal implementation of Scan Directory
-std::shared_ptr<FileResult> Worker::scanDirectoryInternal(std::string path){
+std::vector<std::shared_ptr<FileResult>> Worker::scanDirectoryInternal(std::string path){
     // source: https://stackoverflow.com/questions/18233640/boostfilesystemrecursive-directory-iterator-with-filter
 
-    std::shared_ptr<FileResult> retVal = std::shared_ptr<FileResult>(new FileResult());
+    // Paths comes in as "/a", so the cut index accounts for the leftmost separator removal with +1
+    int cutIndex = path.length() + 1;
+    std::vector<std::shared_ptr<FileResult>> retVal;
     fs::recursive_directory_iterator end, dirWalker(path);
+    
     while(dirWalker != end){
-        auto filepath = dirWalker->path().string();
+        auto filepathInfo = dirWalker->path();
+        auto filepath = filepathInfo.string();
 
-        if(! fs::is_directory(dirWalker->path())){
-            std::cout << filepath << ": " << this->hashFile(filepath) << std::endl;
+        if(! fs::is_directory(filepathInfo)){
+            // Build a new result with a path that does NOT include the original path being scanned
+            std::string shortenedPath = filepath.substr(cutIndex, filepath.length() - cutIndex);
+            auto result = std::shared_ptr<FileResult>(
+                new FileResult(
+                    shortenedPath,
+                    this->hashFile(filepath),
+                    fs::file_size(filepathInfo),
+                    fs::last_write_time(filepathInfo)
+                ));
             
+            retVal.push_back(result);
         }
         
         ++dirWalker;
@@ -43,12 +56,12 @@ std::shared_ptr<FileResult> Worker::scanDirectoryInternal(std::string path){
 }
 
 // Asynchronously run scanDirectory
-std::future<std::shared_ptr<FileResult>> Worker::scanDirectory(std::string path){
+std::future<std::vector<std::shared_ptr<FileResult>>> Worker::scanDirectory(std::string path){
     return std::async(std::launch::async, &Worker::scanDirectoryInternal, this, path);
 }
 
 // Run the reconcile operation
-void Worker::Reconcile(FileResult* a, FileResult* b, bool keepResult){
+void Worker::Reconcile(scan_result& a, scan_result& b, bool keepResult){
     // TODO!
 }
 

@@ -23,7 +23,8 @@ void PrintUsage(){
 
 auto GetTime(){
     auto cTime = std::time(nullptr);
-    return std::put_time(std::gmtime(&cTime), "%c %Z");
+    auto timeFormat = "%Y-%m-%d %H:%M:%S";
+    return std::put_time(std::gmtime(&cTime), timeFormat);
 }
 
 int main(int argc, char** argv){
@@ -39,10 +40,11 @@ int main(int argc, char** argv){
         << args.Checksum->AlgorithmName() << ")" << std::endl;
     std::cout << "Start time " << GetTime() << std::endl;
 
-    auto resultA = work.scanDirectory(args.DirectoryA.string());
-    auto resultB = work.scanDirectory(args.DirectoryB.string());
-
-    work.Reconcile(resultA.get().get(), resultB.get().get(), true);
+    auto promiseA = work.scanDirectory(args.DirectoryA.string());
+    auto promiseB = work.scanDirectory(args.DirectoryB.string());
+    auto resultA = promiseA.get(), resultB = promiseB.get();
+    
+    work.Reconcile(resultA, resultB, true);
     work.WriteResult(args.DirectoryA.string(), args.DirectoryB.string(), "reference.patch", args.ShouldIgnoreUnchanged);
 
     std::cout << std::endl << "End time " << GetTime() << std::endl;

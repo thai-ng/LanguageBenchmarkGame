@@ -12,6 +12,9 @@ struct FileResult{
     // ctor
     FileResult();
 
+    // init ctor
+    FileResult(std::string path, std::string hash, long filesize, std::time_t mdate);
+
     // Equality operator
     bool operator==(const FileResult& rhs);
 

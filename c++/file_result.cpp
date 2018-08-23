@@ -12,6 +12,9 @@ FileResult::FileResult(){
     this->timeModified = 0;
 }
 
+FileResult::FileResult(std::string path, std::string hash, long filesize, std::time_t mdate)
+: filepath(path), hash(hash), size(filesize), timeModified(mdate){ }
+
 // Equality operator
 bool FileResult::operator==(const FileResult& rhs){
     return this->size == rhs.size
@@ -24,8 +27,8 @@ bool FileResult::operator==(const FileResult& rhs){
 std::string FileResult::toString(){
     std::ostringstream buff;
     buff << this->filepath 
-        << "(" << std::put_time(std::gmtime(&this->timeModified), FileResult::dateFormat)
-        << "|" << this->size << " bytes)";
+        << " (" << std::put_time(std::gmtime(&this->timeModified), FileResult::dateFormat)
+        << " | " << this->size << " bytes)";
     
     return buff.str();
 }
