@@ -1,6 +1,6 @@
-.vscode/*
 *.pyc
 *.patch
 */node_modules/*
 *.log
 *.out
+*/.vscode/.ropeproject/objectdb

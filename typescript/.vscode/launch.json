@@ -7,9 +7,9 @@
         {
             "type": "node",
             "request": "launch",
-            "name": "Launch current file w/ ts-node",
+            "name": "Launch w/ ts-node",
             "protocol": "inspector",
-            "args": ["${relativeFile}", "E:\\WorkSource\\RSE.Client.XPos", "E:\\WorkSource\\RSE.Client.XPos-Alt"],
+            "args": ["${workspaceRoot}/program.ts", "/media/DMZ/Queue/", "/media/DMZ-1/Queue/"],
             "cwd": "${workspaceRoot}",
             "runtimeArgs": ["-r", "ts-node/register"],
             "internalConsoleOptions": "openOnSessionStart"
@@ -17,7 +17,7 @@
         {
             "type": "node",
             "request": "launch",
-            "name": "Launch Program",
+            "name": "Launch w/ Node Compile",
             "program": "${workspaceFolder}\\program.ts",
             "outFiles": [
                 "${workspaceFolder}/**/*.js"
