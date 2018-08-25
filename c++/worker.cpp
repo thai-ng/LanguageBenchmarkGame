@@ -13,6 +13,31 @@
 
 namespace fs = boost::filesystem;
 
+// for ease, we'll implement some set operators
+inline string_set operator-(const string_set& lhs, const string_set& rhs){
+    string_set difference;
+    for(auto& entry : lhs){
+        if(rhs.find(entry) == rhs.end()){
+            // If a suspected conflict is not in unchanged entry, it must be a real conflict
+            difference.insert(entry);
+        }
+    }
+
+    return difference;
+}
+
+inline string_set operator&(const string_set& lhs, const string_set& rhs){
+    string_set intersection;
+    for(auto& entry : lhs){
+        if(rhs.find(entry) != rhs.end()){
+            // If a suspected conflict is not in unchanged entry, it must be a real conflict
+            intersection.insert(entry);
+        }
+    }
+    
+    return intersection;
+}
+
 Worker::Worker(const checksum_ptr instance) : checksumInstance(instance) {}
 
 void Worker::populateSetWithKeys(std::unordered_set<std::string>& set, scan_result& result){
@@ -64,25 +89,31 @@ scan_result Worker::scanDirectoryInternal(std::string path){
     return retVal;
 }
 
+std::shared_ptr<patch_result> Worker::createPatchData(
+    scan_result& src, string_set& pathsSrc,
+    scan_result& target, string_set& pathsTarget,
+    string_set& unchanged, string_set& conflicts){
+    
+    std::shared_ptr<patch_result> retVal = std::shared_ptr<patch_result>(new patch_result());
+    
+    string_set additions;
+    //TODO
+
+    return retVal;
+}
+
 // Asynchronously run scanDirectory
 std::future<scan_result> Worker::scanDirectory(std::string path){
     return std::async(std::launch::async, &Worker::scanDirectoryInternal, this, path);
 }
 
 // Run the reconcile operation
-void Worker::Reconcile(scan_result& resultA, scan_result& resultB, bool keepResult){
-    typedef std::unordered_set<std::string> string_set;
-    
+void Worker::Reconcile(scan_result& resultA, scan_result& resultB, bool keepResult){    
     string_set pathsA, pathsB;
     this->populateSetWithKeys(pathsA, resultA);
     this->populateSetWithKeys(pathsB, resultB);
     
-    string_set suspectedConflicts;
-    for(auto& entryA : pathsA){
-        if(pathsB.find(entryA) != pathsB.end()){
-            suspectedConflicts.insert(entryA);
-        }
-    }
+    string_set suspectedConflicts = pathsA & pathsB;
 
     string_set unchangedPaths;
     for(auto& entry : suspectedConflicts){
@@ -99,10 +130,11 @@ void Worker::Reconcile(scan_result& resultA, scan_result& resultB, bool keepResu
         }
     }
 
-    string_set conflicts;
-    //TODO:
+    string_set conflicts = suspectedConflicts - unchangedPaths;
 
-    std::cout << "It worked!" << std::endl;
+    //TODO
+    // std::shared_ptr<patch_result> patchA = this->createPatchData()
+    // std::shared_ptr<patch_result> patchB = this->createPatchData()
 }
 
 // Write the results to a file
