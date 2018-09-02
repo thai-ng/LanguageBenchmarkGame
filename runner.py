@@ -16,6 +16,12 @@ def help(args = None):
     print(" 'compare <comma-separated list of languages> <repetitions> [space-separated arguments]' run some implementations and compare the average time")
 # end help
 
+def import_from(module, name):
+    # answer taken from https://stackoverflow.com/a/8790077
+    module = __import__(module, fromlist=[name])
+    return getattr(module, name)
+# end import_from
+
 def init(args):
     dir_name = args[0]
     resolved_path = os.path.join(os.getcwd(), dir_name)
@@ -67,6 +73,11 @@ def run(args):
     os.chdir(dir_name)
     exec(open(os.path.join('.','run.py')).read())
 
+    module_name = dir_name+'.run'
+    setup = import_from(module_name, 'setup')
+    build = import_from(module_name, 'build')
+    run = import_from(module_name, 'run')
+
     setup()
     build()
     
@@ -76,14 +87,18 @@ def run(args):
 def benchmark(args):
     import time
     
+    working_dir = os.getcwd()
     repetitions = int(args[0])
     dir_name = args[1]
     sub_args = args[2:]
     times = []
 
-    working_dir = os.getcwd()
     os.chdir(dir_name)
-    exec(open(os.path.join('.','run.py')).read())
+
+    module_name = dir_name+'.run'
+    setup = import_from(module_name, 'setup')
+    build = import_from(module_name, 'build')
+    run = import_from(module_name, 'run')
 
     setup()
     build()
