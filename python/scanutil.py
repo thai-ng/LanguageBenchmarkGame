@@ -12,7 +12,7 @@ class FileResult():
         return self.hash == other.hash\
          and self.filepath == other.filepath\
          and self.size == other.size\
-         and self.modified_date == other.modified_date
+         and (self.modified_date - other.modified_date) < 1
 
     def __str__(self):
         return "{0} ({1} | {2} bytes)".format(\
