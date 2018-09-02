@@ -136,7 +136,9 @@ def compare(args):
     # end for
 
     print("Ran {} iterations of implementation: {}".format(repetitions, dir_names))
-    for lang in results.keys().sort():
+    keys = list(results.keys())
+    keys.sort()
+    for lang in keys:
         print("{}: {} seconds".format(lang, results[lang]))
 #end compare
 
