@@ -1,5 +1,6 @@
 #pragma once
 
+#include <memory>
 #include <string>
 #include <ctime>
 
@@ -24,3 +25,5 @@ struct FileResult{
 private:
     const char* dateFormat = "%Y-%m-%d %H:%M:%S";
 };
+
+typedef std::shared_ptr<FileResult> FileResultPtr;

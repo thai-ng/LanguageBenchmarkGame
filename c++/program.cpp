@@ -1,13 +1,12 @@
 #include <algorithm>
 #include <iostream>
-#include <iomanip>
 #include <string>
 #include <vector>
-#include <ctime>
 
 #include "argument_holder.hpp"
 #include "file_result.hpp"
 #include "worker.hpp"
+#include "utils.hpp"
 
 void PrintUsage(){
     using namespace std;
@@ -21,12 +20,6 @@ void PrintUsage(){
     cout << "    --sha256\t\t\t SHA256 Hash" << endl;
 }
 
-auto GetTime(){
-    auto cTime = std::time(nullptr);
-    auto timeFormat = "%Y-%m-%d %H:%M:%S";
-    return std::put_time(std::gmtime(&cTime), timeFormat);
-}
-
 int main(int argc, char** argv){
     ArgumentHolder args;
     if(!args.Parse(argc, argv)){
@@ -38,7 +31,7 @@ int main(int argc, char** argv){
     Worker work(args.Checksum);
     std::cout << "Starting diff of "<< args.DirectoryA << " and " << args.DirectoryB << " ("
         << args.Checksum->AlgorithmName() << ")" << std::endl;
-    std::cout << "Start time " << GetTime() << std::endl;
+    std::cout << "Start time " << GetFormattedDateTime() << std::endl;
 
     auto promiseA = work.scanDirectory(args.DirectoryA.string());
     auto promiseB = work.scanDirectory(args.DirectoryB.string());
@@ -47,5 +40,5 @@ int main(int argc, char** argv){
     work.Reconcile(resultA, resultB, true);
     work.WriteResult(args.DirectoryA.string(), args.DirectoryB.string(), "reference.patch", args.ShouldIgnoreUnchanged);
 
-    std::cout << std::endl << "End time " << GetTime() << std::endl;
+    std::cout << std::endl << "End time " << GetFormattedDateTime() << std::endl;
 }

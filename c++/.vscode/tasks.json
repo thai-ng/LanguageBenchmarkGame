@@ -12,7 +12,7 @@
                 "-std=c++14",
                 "*.cpp",
                 "-lboost_system", "-lboost_filesystem",
-                "-lpthread", "-lcrypto++",
+                "-lpthread", "-lcryptopp",
                 "-Wall", "-pedantic"
             ],
             "group": {

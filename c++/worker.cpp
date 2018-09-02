@@ -1,6 +1,8 @@
 #define CRYPTOPP_ENABLE_NAMESPACE_WEAK 1
 
+#include <fstream>
 #include <iostream>
+#include <algorithm>
 #include <unordered_map>
 #include <unordered_set>
 
@@ -9,6 +11,7 @@
 #include <cryptopp/files.h>
 #include <cryptopp/hex.h>
 
+#include "utils.hpp"
 #include "worker.hpp"
 
 namespace fs = boost::filesystem;
@@ -89,15 +92,31 @@ scan_result Worker::scanDirectoryInternal(std::string path){
     return retVal;
 }
 
+// Actually creates the patch data
 std::shared_ptr<patch_result> Worker::createPatchData(
     scan_result& src, string_set& pathsSrc,
     scan_result& target, string_set& pathsTarget,
     string_set& unchanged, string_set& conflicts){
     
     std::shared_ptr<patch_result> retVal = std::shared_ptr<patch_result>(new patch_result());
+    patch_result &resultMap = *retVal;
     
-    string_set additions;
-    //TODO
+    string_set additions = pathsSrc - pathsTarget;
+    
+    resultMap[ReconcileOperation::ADD].reserve(additions.size());
+    for(const auto& addition : additions){
+        resultMap[ReconcileOperation::ADD].push_back(src[addition]);
+    }
+
+    resultMap[ReconcileOperation::UNCHANGED].reserve(unchanged.size());
+    for(const auto& entry : unchanged){
+        resultMap[ReconcileOperation::UNCHANGED].push_back(target[entry]);
+    }
+
+    resultMap[ReconcileOperation::CONFLICT].reserve(conflicts.size());
+    for(const auto& entry : conflicts){
+        resultMap[ReconcileOperation::UNCHANGED].push_back(target[entry]);
+    }
 
     return retVal;
 }
@@ -132,14 +151,68 @@ void Worker::Reconcile(scan_result& resultA, scan_result& resultB, bool keepResu
 
     string_set conflicts = suspectedConflicts - unchangedPaths;
 
-    //TODO
-    // std::shared_ptr<patch_result> patchA = this->createPatchData()
-    // std::shared_ptr<patch_result> patchB = this->createPatchData()
+    std::shared_ptr<patch_result> patchA = 
+        this->createPatchData(
+            resultB, pathsB,
+            resultA, pathsA,
+            unchangedPaths, conflicts);
+    std::shared_ptr<patch_result> patchB =
+        this->createPatchData(
+            resultA, pathsA,
+            resultB, pathsB,
+            unchangedPaths, conflicts);
+
+    if(keepResult){
+        this->lastReconcile = std::shared_ptr<reconcile_result>(new reconcile_result(patchA, patchB));
+    }
+}
+
+// Write an individual patch result
+void Worker::WritePatchResult(std::string directory, patch_result_ptr result, std::ostream& output, bool ignoreUnchanged = false){
+    typedef std::pair<char, FileResultPtr> line;
+    
+    // Flatten the initial structure
+    std::vector<std::shared_ptr<line>> lines;
+    for(auto& operation_set : *result){
+        ReconcileOperation operation = operation_set.first;
+        auto& entries = operation_set.second;
+
+        if(operation == ReconcileOperation::UNCHANGED && ignoreUnchanged){
+            continue;
+        }
+
+        for(auto entry : entries){
+            lines.push_back(std::shared_ptr<line>(new line((char)operation, entry)));
+        }
+    }
+
+    // Sort it by the filepath
+    auto sorter = [](std::shared_ptr<line> a, std::shared_ptr<line> b) -> bool 
+    {
+        return a->second->filepath < b->second->filepath;
+    };
+    std::sort(lines.begin(), lines.end(), sorter);
+
+    // Write out the lines
+    output << directory << std::endl;
+    for(const auto& entry: lines){
+        output << entry->first << " " << entry->second->toString() << std::endl;
+    }
 }
 
 // Write the results to a file
 void Worker::WriteResult(std::string dirA, std::string dirB, std::string destination, bool ignoreUnchanged){
-    // TODO!
+    std::fstream outFile (destination, std::fstream::out);
+
+    outFile << "# Results for " << GetFormattedDateTime() << std::endl;
+    outFile << "# Reconciled '" << dirA << "' '" << dirB << "'" << std::endl;
+
+    this->WritePatchResult(dirA, this->lastReconcile->first, outFile, ignoreUnchanged);
+    outFile << std::endl;
+    this->WritePatchResult(dirB, this->lastReconcile->second, outFile, ignoreUnchanged);
+    outFile << std::endl;
+
+    outFile.close();
 }
 
 #undef CRYPTOPP_ENABLE_NAMESPACE_WEAK

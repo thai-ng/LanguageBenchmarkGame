@@ -27,7 +27,7 @@ bool FileResult::operator==(const FileResult& rhs){
 std::string FileResult::toString(){
     std::ostringstream buff;
     buff << this->filepath 
-        << " (" << std::put_time(std::gmtime(&this->timeModified), FileResult::dateFormat)
+        << " (" << std::put_time(std::localtime(&this->timeModified), FileResult::dateFormat)
         << " | " << this->size << " bytes)";
     
     return buff.str();
