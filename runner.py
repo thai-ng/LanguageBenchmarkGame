@@ -6,6 +6,7 @@
 import sys, os, inspect
 
 def help(args = None):    
+    __name__ = "__main__"
     supported_operations = [name for name, obj in inspect.getmembers(sys.modules[__name__]) if inspect.isfunction(obj)]
     print("Language Benchmark Runner")
     print(" 'help' for this text")
@@ -65,8 +66,10 @@ def run(args):
 
     os.chdir(dir_name)
     exec(open(os.path.join('.','run.py')).read())
+
     setup()
     build()
+    
     run(sub_args)
 #end run
 
@@ -131,7 +134,7 @@ if __name__=="__main__":
         operation_name = args[0]
         operation = eval(operation_name)
         operation(args[1:])
-    except Exception, e:
+    except Exception as e:
         print("")
         print("Encountered an issue while running: \"{}\"\n".format(e))
         help()
