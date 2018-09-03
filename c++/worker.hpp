@@ -49,7 +49,7 @@ private:
         string_set& unchanged, string_set& conflicts);
 
     // Write an individual patch result
-    void WritePatchResult(std::string directory, patch_result_ptr result, std::ostream& output, bool ignoreUnchanged);
+    std::stringstream WritePatchResult(std::string directory, patch_result_ptr result, bool ignoreUnchanged);
 
 public:
     // ctor w/ checksum object instance

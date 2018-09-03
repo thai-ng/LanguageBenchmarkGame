@@ -52,9 +52,10 @@ void Worker::populateSetWithKeys(std::unordered_set<std::string>& set, scan_resu
 std::string Worker::hashFile(std::string filepath){
     using namespace CryptoPP;
 
-    checksum_ptr checksum = checksum_ptr((CryptoPP::HashTransformation*)this->checksumInstance->Clone());
+    CryptoPP::HashTransformation* checksum = (CryptoPP::HashTransformation*)this->checksumInstance->Clone();
     std::string digest;
     FileSource fileSource(filepath.c_str(), true, new HashFilter(*checksum, new HexEncoder(new StringSink(digest))));
+    delete checksum;
 
     return digest;
 }
@@ -115,7 +116,7 @@ std::shared_ptr<patch_result> Worker::createPatchData(
 
     resultMap[ReconcileOperation::CONFLICT].reserve(conflicts.size());
     for(const auto& entry : conflicts){
-        resultMap[ReconcileOperation::UNCHANGED].push_back(target[entry]);
+        resultMap[ReconcileOperation::CONFLICT].push_back(target[entry]);
     }
 
     return retVal;
@@ -168,11 +169,12 @@ void Worker::Reconcile(scan_result& resultA, scan_result& resultB, bool keepResu
 }
 
 // Write an individual patch result
-void Worker::WritePatchResult(std::string directory, patch_result_ptr result, std::ostream& output, bool ignoreUnchanged = false){
+std::stringstream Worker::WritePatchResult(std::string directory, patch_result_ptr result, bool ignoreUnchanged = false){
     typedef std::pair<char, FileResultPtr> line;
+    std::stringstream output;
     
     // Flatten the initial structure
-    std::vector<std::shared_ptr<line>> lines;
+    std::vector<line> lines;
     for(auto& operation_set : *result){
         ReconcileOperation operation = operation_set.first;
         auto& entries = operation_set.second;
@@ -182,35 +184,46 @@ void Worker::WritePatchResult(std::string directory, patch_result_ptr result, st
         }
 
         for(auto entry : entries){
-            lines.push_back(std::shared_ptr<line>(new line((char)operation, entry)));
+            lines.push_back(line((char)operation, entry));
         }
     }
 
     // Sort it by the filepath
-    auto sorter = [](std::shared_ptr<line> a, std::shared_ptr<line> b) -> bool 
+    auto sorter = [](const line& a, const line& b) -> bool 
     {
-        return a->second->filepath < b->second->filepath;
+        return a.second->filepath < b.second->filepath;
     };
     std::sort(lines.begin(), lines.end(), sorter);
 
     // Write out the lines
     output << directory << std::endl;
-    for(const auto& entry: lines){
-        output << entry->first << " " << entry->second->toString() << std::endl;
+    for(const line& entry: lines){
+        output << entry.first << " " << entry.second->toString() << std::endl;
     }
+
+    return output;
 }
 
 // Write the results to a file
 void Worker::WriteResult(std::string dirA, std::string dirB, std::string destination, bool ignoreUnchanged){
     std::fstream outFile (destination, std::fstream::out);
 
+    // Asynchronously format the lines before writing
+    auto linesA = std::async(
+        std::launch::async, 
+        &Worker::WritePatchResult, 
+        this, 
+        dirA, this->lastReconcile->first, ignoreUnchanged);
+    auto linesB = std::async(
+        std::launch::async, 
+        &Worker::WritePatchResult, 
+        this, 
+        dirB, this->lastReconcile->second, ignoreUnchanged);
+
     outFile << "# Results for " << GetFormattedDateTime() << std::endl;
     outFile << "# Reconciled '" << dirA << "' '" << dirB << "'" << std::endl;
-
-    this->WritePatchResult(dirA, this->lastReconcile->first, outFile, ignoreUnchanged);
-    outFile << std::endl;
-    this->WritePatchResult(dirB, this->lastReconcile->second, outFile, ignoreUnchanged);
-    outFile << std::endl;
+    outFile << linesA.get().str() << std::endl;
+    outFile << linesB.get().str() << std::endl;
 
     outFile.close();
 }

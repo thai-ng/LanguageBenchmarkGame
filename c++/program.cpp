@@ -21,6 +21,9 @@ void PrintUsage(){
 }
 
 int main(int argc, char** argv){
+    std::ios_base::sync_with_stdio(false);
+    std::cin.tie(nullptr);
+
     ArgumentHolder args;
     if(!args.Parse(argc, argv)){
         std::cout << "Error parsing arguments!" << std::endl;
