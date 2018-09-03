@@ -5,8 +5,11 @@ import (
 	"hash"
 	"io"
 	"os"
+	"sort"
+	"strings"
 	"time"
 
+	set "github.com/deckarep/golang-set"
 	"github.com/karrick/godirwalk"
 	kingpin "gopkg.in/alecthomas/kingpin.v2"
 )
@@ -70,6 +73,7 @@ func visitFile(canonicalPath, filepath string, checksumFunction hash.Hash) FileR
 	Check(err)
 	file, err := os.Open(filepath)
 	Check(err)
+	defer file.Close()
 
 	_, err = io.Copy(checksumFunction, file)
 	Check(err)
@@ -82,13 +86,121 @@ func visitFile(canonicalPath, filepath string, checksumFunction hash.Hash) FileR
 	}
 }
 
+func populateStringSet(results map[string]FileResult) set.Set {
+	paths := set.NewSet()
+	for path := range results {
+		paths.Add(path)
+	}
+	return paths
+}
+
+func generatePatch(src, target map[string]FileResult, srcPaths, targetPaths, unchanged, conflicts set.Set) map[rune][]FileResult {
+	patch := map[rune][]FileResult{}
+
+	additions := srcPaths.Difference(targetPaths)
+	patch['+'] = make([]FileResult, 0, additions.Cardinality())
+	additions.Each(func(entry interface{}) bool {
+		path := entry.(string)
+		patch['+'] = append(patch['+'], src[path])
+		return false
+	})
+
+	patch['='] = make([]FileResult, 0, unchanged.Cardinality())
+	unchanged.Each(func(entry interface{}) bool {
+		path := entry.(string)
+		patch['='] = append(patch['='], target[path])
+		return false
+	})
+
+	patch['!'] = make([]FileResult, 0, conflicts.Cardinality())
+	conflicts.Each(func(entry interface{}) bool {
+		path := entry.(string)
+		patch['!'] = append(patch['!'], target[path])
+		return false
+	})
+
+	return patch
+}
+
 func reconcile(resultsA, resultsB map[string]FileResult) ReconcileResult {
-	// TODO
-	return ReconcileResult{}
+	pathsA := populateStringSet(resultsA)
+	pathsB := populateStringSet(resultsB)
+
+	suspectedConflicts := pathsA.Intersect(pathsB)
+	unchangedPaths := set.NewSet()
+
+	suspectedConflicts.Each(func(entry interface{}) bool {
+		path := entry.(string)
+		if resultsA[path] != resultsB[path] {
+			unchangedPaths.Add(path)
+		}
+
+		return false
+	})
+
+	conflicts := suspectedConflicts.Difference(unchangedPaths)
+
+	patchResultA := generatePatch(resultsB, resultsA, pathsB, pathsA, unchangedPaths, conflicts)
+	patchResultB := generatePatch(resultsA, resultsB, pathsA, pathsB, unchangedPaths, conflicts)
+
+	return ReconcileResult{
+		patchA: patchResultA,
+		patchB: patchResultB,
+	}
 }
 
 func writeResult(changes ReconcileResult, args ArgumentHolder) {
-	// TODO
+	filename := "reference.patch"
+
+	if _, err := os.Stat(filename); err == nil {
+		Check(os.Remove(filename))
+	}
+
+	outFile, err := os.OpenFile(filename, os.O_WRONLY|os.O_CREATE, 0777)
+	Check(err)
+
+	writeChanA := make(chan string)
+	writeChanB := make(chan string)
+
+	go writePatchResult(writeChanA, *args.directoryA, changes.patchA, *args.ignoreUnchanged)
+	go writePatchResult(writeChanB, *args.directoryB, changes.patchB, *args.ignoreUnchanged)
+
+	outFile.WriteString(fmt.Sprintf("# Results for %s\n", time.Now().Format("2006-01-02 15:04:05.000")))
+	outFile.WriteString(fmt.Sprintf("# Reconciled '%s' and '%s'\n", *args.directoryA, *args.directoryB))
+	outFile.WriteString(<-writeChanA)
+	outFile.WriteString("\n")
+	outFile.WriteString(<-writeChanB)
+	outFile.WriteString("\n")
+}
+
+func writePatchResult(outChannel chan string, directory string, result map[rune][]FileResult, ignoreUnchanged bool) {
+	builder := strings.Builder{}
+	builder.WriteString(directory)
+	builder.WriteString("\n")
+
+	// flatten and sort before writing
+	lines := make([]Line, 0)
+	for op, paths := range result {
+		if op == '=' && ignoreUnchanged {
+			continue
+		}
+
+		for _, entry := range paths {
+			lines = append(lines, Line{operation: op, file: entry})
+		}
+	}
+
+	sort.Slice(lines, func(i, j int) bool {
+		// Predicate for sorting
+		return lines[i].file.filepath < lines[j].file.filepath
+	})
+
+	for _, line := range lines {
+		builder.WriteString(line.String())
+		builder.WriteString("\n")
+	}
+
+	outChannel <- builder.String()
 }
 
 func main() {
@@ -99,13 +211,8 @@ func main() {
 	scanChannelA := make(chan map[string]FileResult)
 	scanChannelB := make(chan map[string]FileResult)
 
-	go func() {
-		scanChannelA <- scanDirectory(*args.directoryA, args)
-	}()
-
-	go func() {
-		scanChannelB <- scanDirectory(*args.directoryB, args)
-	}()
+	go func() { scanChannelA <- scanDirectory(*args.directoryA, args) }()
+	go func() { scanChannelB <- scanDirectory(*args.directoryB, args) }()
 
 	resultA := <-scanChannelA
 	resultB := <-scanChannelB
