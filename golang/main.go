@@ -131,7 +131,7 @@ func reconcile(resultsA, resultsB map[string]FileResult) ReconcileResult {
 
 	suspectedConflicts.Each(func(entry interface{}) bool {
 		path := entry.(string)
-		if resultsA[path] != resultsB[path] {
+		if resultsA[path].Equal(resultsB[path]) {
 			unchangedPaths.Add(path)
 		}
 

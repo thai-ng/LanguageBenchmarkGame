@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"math"
 	"time"
 )
 
@@ -11,6 +12,14 @@ type FileResult struct {
 	hash         string
 	size         int64
 	timeModified time.Time
+}
+
+// Equal : Checks if two file results are equal
+func (fr FileResult) Equal(other FileResult) bool {
+	return fr.hash == other.hash &&
+		fr.size == other.size &&
+		(math.Abs(fr.timeModified.Sub(other.timeModified).Seconds()) < 1) &&
+		fr.filepath == fr.filepath
 }
 
 func (fr FileResult) String() string {
