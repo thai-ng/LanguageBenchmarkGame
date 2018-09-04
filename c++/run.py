@@ -20,7 +20,9 @@ def setup():
 def build():
     import subprocess, os
     source_files = [x for x in os.listdir('.') if x.endswith('.cpp')]
-    process_args = ['g++', '-std=c++14', '-lboost_system', '-lboost_filesystem', '-lpthread', '-lcryptopp', '-Wall', '-pedantic', '-Ofast', '-o', output_file_name] + source_files
+    c_libs = ['-lboost_system', '-lboost_filesystem', '-lpthread', '-lcryptopp']
+    c_defs = ['-DNDEBUG', '-DCRYPTOPP_CXX11', '-DCRYPTOPP_CXX11_NOEXCEPT']
+    process_args = ['clang++', '-std=c++14',  '-Wall', '-pedantic',  '-Ofast', '-o', output_file_name] + c_libs + c_defs + source_files
     subprocess.call(process_args)
     print("Built C++ implementation as '{}'".format(output_file_name))
 #end run
