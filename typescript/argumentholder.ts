@@ -36,10 +36,11 @@ export class ArgumentHolder{
         let selection = "";
         options.forEach(functionName => {
             let possibleSelection = args[functionName];
-            if (possibleSelection && selection) {
-                throw new Error(`Expected only option '${selection}' or '${functionName}'`);
-            }
-            if (selection.length < 1) {
+            if (possibleSelection) {
+                if(selection.length > 1){
+                    throw new Error(`Expected only option '${selection}' or '${functionName}'`);
+                }
+
                 selection = functionName;
             }
         });
