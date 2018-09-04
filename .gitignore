@@ -4,3 +4,6 @@
 *.log
 *.out
 */.vscode/.ropeproject/objectdb
+*.dll
+*/obj/*
+*/bin/*
