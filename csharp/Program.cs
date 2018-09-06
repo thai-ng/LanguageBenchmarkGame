@@ -17,13 +17,13 @@ namespace LanguageBenchmark
             [Option('u',"ignore-unchanged", Default = false, HelpText="Ignore unchagned files in the final output")]
             public bool ignoreUnchanged { get; set; }
 
-            [Option("md5", Default = true, HelpText="MD5 hash (default)", SetName="md5")]
+            [Option("md5", HelpText="MD5 hash (default)", SetName="md5")]
             public bool useMD5 { get; set; }
 
-            [Option("sha1", Default = false, HelpText="SHA1 hash", SetName="sha1")]
+            [Option("sha1", HelpText="SHA1 hash", SetName="sha1")]
             public bool useSHA1 { get; set; }
 
-            [Option("sha256", Default = false, HelpText="SHA256 hash", SetName="sha256")]
+            [Option("sha256", HelpText="SHA256 hash", SetName="sha256")]
             public bool useSHA256 { get; set; }   
         }
 
