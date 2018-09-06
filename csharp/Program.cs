@@ -36,7 +36,7 @@ namespace LanguageBenchmark
                     {
                         ArgumentHolder argHolder = new ArgumentHolder(parsedArgs);
                         Console.WriteLine($"Starting diff of '{argHolder.DirectoryA}' and '{argHolder.DirectoryB}' ({argHolder.checksumName})");
-                        Console.WriteLine($"Starting at {DateTime.Now.ToString()}");
+                        Console.WriteLine($"Starting at {DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss")}");
                         var worker = new Worker(argHolder.checksumName);
                         
                         var scanA = worker.ScanDirectory(argHolder.DirectoryA);
@@ -44,9 +44,9 @@ namespace LanguageBenchmark
                         Task.WaitAll(scanA, scanB);
 
                         var reconcileOperation = worker.Reconcile(scanA.Result, scanB.Result);
-                        worker.WriteResults(reconcileOperation);
+                        Task.WaitAll(worker.WriteResults(argHolder, reconcileOperation, "reference.patch"));
 
-                        Console.WriteLine($"Finished at {DateTime.Now.ToString()}");
+                        Console.WriteLine($"Finished at {DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss")}");
                     })
                 .WithNotParsed(
                     // TODO: fix to directly exit the application

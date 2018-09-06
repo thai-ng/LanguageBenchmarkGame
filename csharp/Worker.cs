@@ -64,11 +64,21 @@ namespace LanguageBenchmark
             );
         }
 
-        public Task WriteResults(Results.ReconcileResult patch)
+        public async Task WriteResults(ArgumentHolder args, Results.ReconcileResult patch, string outFilepath)
         {
-            // TODO!!!
-            throw new NotImplementedException();
-            return Task.CompletedTask;
+            using(var outFile = File.Open(outFilepath, FileMode.Create, FileAccess.Write))
+            using(var outStream = new StreamWriter(outFile))
+            {
+                var writeTaskA = Task.Run(() => this.WritePatchResult(args.DirectoryA, patch.Item1, args.ignoreUnchanged));
+                var writeTaskB = Task.Run(() => this.WritePatchResult(args.DirectoryB, patch.Item2, args.ignoreUnchanged));
+
+                await outStream.WriteLineAsync($"# Results for {DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss")}");
+                await outStream.WriteLineAsync($"# Reconciled '{args.DirectoryA}' and '{args.DirectoryB}'");
+                await outStream.WriteLineAsync(await writeTaskA);
+                await outStream.WriteLineAsync();
+                await outStream.WriteLineAsync(await writeTaskB);
+                await outStream.WriteLineAsync();
+            }
         }
 
         private FileResult HashFile(string filepath, string canonicalPath)
@@ -116,5 +126,36 @@ namespace LanguageBenchmark
 
             return retVal;
         }
+
+        private string WritePatchResult(string dir, Results.PatchResult result, bool ignoreUnchanged)
+        {
+            var buffer = new StringBuilder();
+            buffer.AppendLine(dir);
+
+            var lines = new List<Results.Line>();
+
+            foreach(var action in result)
+            {
+                var operation = action.Key;
+                if(operation == Results.ReconcileOperation.UNCHANGED && ignoreUnchanged)
+                {
+                    continue;
+                }
+
+                foreach(var entry in action.Value)
+                {
+                    lines.Add(new Results.Line(operation, entry));
+                }
+            }
+
+            // Sort by filename
+            lines.Sort((x,y) => { return string.CompareOrdinal(x.Item2.FilePath,  y.Item2.FilePath); });
+            foreach(var line in lines)
+            {
+                buffer.AppendLine($"{(char)line.Item1} {line.Item2}");
+            }
+
+            return buffer.ToString();
+        }   
     }
 }

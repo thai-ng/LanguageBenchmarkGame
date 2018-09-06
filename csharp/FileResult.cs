@@ -37,7 +37,7 @@ namespace LanguageBenchmark
 
         public override string ToString()
         {
-            return $"{this.FilePath} ({this.ModifiedDate.ToLongTimeString()} | {this.Size} bytes)";
+            return $"{this.FilePath} ({this.ModifiedDate.ToString("yyyy-MM-dd HH:mm:ss")} | {this.Size} bytes)";
         }
     }
 }

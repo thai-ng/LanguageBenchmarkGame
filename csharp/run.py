@@ -24,12 +24,12 @@ def setup():
 def build():
     import subprocess
     subprocess.call(['dotnet', 'restore'])
-    subprocess.call(['dotnet', 'build'])
+    subprocess.call(['dotnet', 'build', '-c', 'Release'])
 #end run
 
 def run(cmd_args):
     import subprocess
-    process_args = ['dotnet', 'run'] + cmd_args
+    process_args = ['dotnet', 'run', '--'] + cmd_args
     subprocess.call(process_args)
 #end run
 

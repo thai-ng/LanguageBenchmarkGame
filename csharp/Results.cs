@@ -21,5 +21,10 @@ namespace LanguageBenchmark
         {
             public ReconcileResult(PatchResult a, PatchResult b): base(a,b){}
         }
+
+        public class Line : Tuple<ReconcileOperation, FileResult> 
+        {
+            public Line(ReconcileOperation op, FileResult result): base(op,result){}
+        }
     }
 }
