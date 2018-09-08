@@ -80,17 +80,16 @@ def run(args):
     print("")
 
     os.chdir(dir_name)
-    #exec(open(os.path.join('.','run.py')).read())
 
     module_name = dir_name+'.run'
     setup = import_from(module_name, 'setup')
     build = import_from(module_name, 'build')
-    run = import_from(module_name, 'run')
+    run_implementation = import_from(module_name, 'run')
 
     setup()
     build()
     
-    run(sub_args)
+    run_implementation(sub_args)
     
     # restore working directory
     os.chdir(working_dir)
@@ -132,7 +131,7 @@ def verify(args):
     print("'{}' meets the implementation criteria".format(comparison))
 #end verify
 
-def benchmark(args):
+def benchmark(args, return_times = False):
     import time
     
     # save the current working dir
@@ -148,14 +147,14 @@ def benchmark(args):
     module_name = dir_name+'.run'
     setup = import_from(module_name, 'setup')
     build = import_from(module_name, 'build')
-    run = import_from(module_name, 'run')
+    run_implementation = import_from(module_name, 'run')
 
     setup()
     build()
     print("========== Starting Benchmark ==========")
     for i in range(repetitions):
         start_time = time.time()
-        run(sub_args)
+        run_implementation(sub_args)
         end_time = time.time()
         times.append(end_time-start_time)
     #end for
@@ -168,6 +167,10 @@ def benchmark(args):
     
     # restore working dir
     os.chdir(working_dir)
+
+    if return_times:
+        return times
+
     return average
 #end benchmark
 
