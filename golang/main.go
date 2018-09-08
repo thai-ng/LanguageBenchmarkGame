@@ -166,7 +166,7 @@ func writeResult(changes ReconcileResult, args ArgumentHolder) {
 	go writePatchResult(writeChanB, *args.directoryB, changes.patchB, *args.ignoreUnchanged)
 
 	outFile.WriteString(fmt.Sprintf("# Results for %s\n", time.Now().Format("2006-01-02 15:04:05.000")))
-	outFile.WriteString(fmt.Sprintf("# Reconciled '%s' and '%s'\n", *args.directoryA, *args.directoryB))
+	outFile.WriteString(fmt.Sprintf("# Reconciled '%s' '%s'\n", *args.directoryA, *args.directoryB))
 	outFile.WriteString(<-writeChanA)
 	outFile.WriteString("\n")
 	outFile.WriteString(<-writeChanB)

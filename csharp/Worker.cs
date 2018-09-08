@@ -77,7 +77,7 @@ namespace LanguageBenchmark
                 var writeTaskB = Task.Run(() => this.WritePatchResult(args.DirectoryB, patch.Item2, args.ignoreUnchanged));
 
                 await outStream.WriteLineAsync($"# Results for {DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss")}");
-                await outStream.WriteLineAsync($"# Reconciled '{args.DirectoryA}' and '{args.DirectoryB}'");
+                await outStream.WriteLineAsync($"# Reconciled '{args.DirectoryA}' '{args.DirectoryB}'");
                 await outStream.WriteLineAsync(await writeTaskA);
                 await outStream.WriteLineAsync();
                 await outStream.WriteLineAsync(await writeTaskB);
