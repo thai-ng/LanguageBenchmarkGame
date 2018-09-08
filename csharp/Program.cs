@@ -49,8 +49,8 @@ namespace LanguageBenchmark
                         Console.WriteLine($"Finished at {DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss")}");
                     })
                 .WithNotParsed(
-                    // TODO: fix to directly exit the application
-                    unparsed => throw new ArgumentException()
+                    // Just exit the program
+                    _ => System.Environment.Exit(1)
                 );
         }
     }

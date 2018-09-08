@@ -17,24 +17,29 @@ namespace LanguageBenchmark
             this.checksumName = checksumName;
         }
 
-        public async Task<Results.ScanResult> ScanDirectory(string root)
+        public Task<Results.ScanResult> ScanDirectory(string root)
         {
             var cutIndex = root.Length + 1;
             var files = Directory.EnumerateFiles(root, "*", SearchOption.AllDirectories);
 
-            // TODO: parallelize more cleanly
-            var scanResult = new Results.ScanResult();
-            var awaitableTasks = new List<Task>();
-            foreach(var filepath in files)
-            {
-                var canonicalPath = filepath.Substring(cutIndex);
-                awaitableTasks.Add(
-                    Task.Run(() => scanResult[canonicalPath] = this.HashFile(filepath, canonicalPath))
-                );
-            }
+            // Return a task that runs this in a parallel foreach
+            //  Because Parallel.ForEach doesn't return a task and is not awaitable, 
+            //  then we have to wrap it in this way. 
+            //  The resulting code is faster than having a List<Task> that is then sent to Task.WaitAll
+            //  since Parallel.ForEach scales better.
+            return Task.Run(
+                () => 
+                {
+                    var scanResult = new Results.ScanResult();
+                    Parallel.ForEach(files, 
+                        (filepath) => {
+                            var canonicalPath = filepath.Substring(cutIndex);
+                            scanResult[canonicalPath] = this.HashFile(filepath, canonicalPath);
+                    });
 
-            await Task.WhenAll(awaitableTasks.ToArray());
-            return scanResult;
+                    return scanResult;
+                }
+            );
         }
 
         public Results.ReconcileResult Reconcile(Results.ScanResult a, Results.ScanResult b)
