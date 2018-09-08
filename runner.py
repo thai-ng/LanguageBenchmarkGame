@@ -16,6 +16,7 @@ def help(args = None):
     print(" 'verify <language> [space-separated arguments]' to check a given <language> against the reference")
     print(" 'benchmark <repetitions> <language> [space-separated arguments]' run an implementation and take an average time")
     print(" 'compare <comma-separated list of languages> <repetitions> [space-separated arguments]' run some implementations and compare the average time")
+    print(" 'plot/boxplot <comma-separated list of languages> <repetitions> [space-separated arguments]' benchmark and plot the results")
     print()
 # end help
 
@@ -174,7 +175,7 @@ def benchmark(args, return_times = False):
     return average
 #end benchmark
 
-def compare(args):
+def compare(args, return_time_list = False, print_results = True):
     dir_names = args[0].split(',')
     if len(dir_names) == 1 and dir_names[0] == 'all':
         dir_names = [x for x in os.listdir('.') if os.path.isdir(x) and os.path.exists(os.path.join('.',x,'run.py'))]
@@ -186,15 +187,62 @@ def compare(args):
     for implementation in dir_names:
         sub_args = [repetitions, implementation]
         sub_args.extend(args[2:])
-        results[implementation] = benchmark(sub_args)
+        results[implementation] = benchmark(sub_args, return_times=return_time_list)
     # end for
+
+    if not print_results:
+        return results
 
     print("Ran {} iterations of implementation: {}".format(repetitions, dir_names))
     keys = list(results.keys())
     keys.sort()
     for lang in keys:
         print("{}: {} seconds".format(lang, results[lang]))
+
+    return results
 #end compare
+
+def __plot(args, use_mean = False):
+    # internal, shared implementation of plot
+
+    # do a comparison, but get all results back
+    benchmark_results = compare(args, return_time_list = not use_mean, print_results= False)
+
+    ordered_results = []
+    avg = lambda collection: sum(collection)/len(collection)
+    key_func = lambda x : avg(x[1])
+    
+    if use_mean:
+        # We want avg to be a no-op since it is already averaged
+        avg = lambda x: x
+    
+    ordered_results = [(lang, results) for lang,results in benchmark_results.items()]
+    ordered_results.sort(key = key_func)
+    
+    return ordered_results
+#end __plot
+
+def plot(args):
+    import pygal
+
+    benchmark_results = __plot(args, use_mean= True)
+
+    bar_chart = pygal.HorizontalBar()
+    bar_chart.title = 'Language benchmark results (in seconds, lower is better)'
+    [bar_chart.add(x[0], x[1]) for x in benchmark_results]
+    bar_chart.render_in_browser()
+#end plot
+
+def boxplot(args):
+    import pygal
+
+    benchmark_results = __plot(args, use_mean= False)
+
+    box_plot = pygal.Box()
+    box_plot.title = 'Language benchmark results'
+    [box_plot.add(lang, results) for lang,results in benchmark_results]
+    box_plot.render_in_browser()
+#end plot
 
 if __name__=="__main__":
     args = sys.argv[1:]
