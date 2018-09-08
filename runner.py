@@ -154,10 +154,10 @@ def benchmark(args, return_times = False):
     build()
     print("========== Starting Benchmark ==========")
     for i in range(repetitions):
-        start_time = time.time()
+        start_time = time.perf_counter()
         run_implementation(sub_args)
-        end_time = time.time()
-        times.append(end_time-start_time)
+        end_time = time.perf_counter()
+        times.append(round(end_time-start_time,3))
     #end for
     print("========== Finishing Benchmark ==========")
 
