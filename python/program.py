@@ -90,7 +90,7 @@ def write_result(patch_tuple, args):
     """Creates the final output of the program: a patch recommendation"""
     with open("reference.patch", 'w') as result_file:
         result_file.write("# Results for {}\n".format(datetime.datetime.now()))
-        result_file.write("# Reconciled '{0}' '{1}'\n".format(args.directory_a, args.directory_b))
+        result_file.write("# Reconciled '{0}' and '{1}'\n".format(args.directory_a, args.directory_b))
         
         write_patch_results(args.directory_a, patch_tuple[0], result_file, args.ignore_unchanged)
         result_file.write("\n")
