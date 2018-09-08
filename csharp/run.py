@@ -29,7 +29,7 @@ def build():
 
 def run(cmd_args):
     import subprocess
-    process_args = ['dotnet', 'run', '--no-build', '--no-restore', '--'] + cmd_args
+    process_args = ['dotnet', 'run', '-c', 'Release', '--no-build', '--no-restore', '--'] + cmd_args
     subprocess.call(process_args)
 #end run
 
