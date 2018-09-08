@@ -19,12 +19,23 @@ def setup():
 
 def build():
     import subprocess, os
+    
+    # remove the previous build
+    if os.path.exists(output_file_name):
+        os.remove(output_file_name)
+
     source_files = [x for x in os.listdir('.') if x.endswith('.cpp')]
     c_libs = ['-lboost_system', '-lboost_filesystem', '-lpthread', '-lcryptopp']
     c_defs = ['-DNDEBUG', '-DCRYPTOPP_CXX11', '-DCRYPTOPP_CXX11_NOEXCEPT']
-    process_args = ['clang++', '-std=c++14',  '-Wall', '-pedantic',  '-Ofast', '-o', output_file_name] + c_libs + c_defs + source_files
+
+    # For older versions of clang++/g++, the order of the source files matters!
+    process_args = ['clang++'] + source_files + ['-std=c++14',  '-Wall', '-pedantic',  '-Ofast', '-o', output_file_name] + c_libs + c_defs
     subprocess.call(process_args)
-    print("Built C++ implementation as '{}'".format(output_file_name))
+
+    if os.path.exists(output_file_name):
+        print("Built C++ implementation as '{}'".format(output_file_name))
+    else:
+        raise AssertionError("Build failed")
 #end run
 
 def run(cmd_args):

@@ -16,6 +16,23 @@ enum class ReconcileOperation : char{
     CONFLICT = '!'
 };
 
+namespace std
+{
+    // Older compiler versions won't be able to resolve the underlying type of ReconcileOperation
+    // You'd expect this situation to be handled through SFINAE, but it actually fails to substitute
+    // when attempting to create 'patch_result' (observed in gcc version 5.4.0 20160609 (Ubuntu 5.4.0-6ubuntu1~16.04.5))
+    // Newer compilers will behave correctly if the code below is commented out.
+    template<> struct hash<ReconcileOperation>
+    {
+        typedef ReconcileOperation argument_type;
+        typedef std::size_t result_type;
+        result_type operator()(argument_type const& s) const noexcept
+        {
+            return (size_t)s;
+        }
+    };
+}
+
 // Short-hand for worker results
 typedef std::unordered_map<std::string, FileResultPtr> scan_result;
 typedef std::unordered_map<ReconcileOperation, std::vector<FileResultPtr>> patch_result;
