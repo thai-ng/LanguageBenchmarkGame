@@ -8,7 +8,6 @@ using System.Threading.Tasks;
 
 namespace LanguageBenchmark
 {
-
     class Worker
     {
         public string checksumName { get; protected set; }
@@ -86,11 +85,10 @@ namespace LanguageBenchmark
             using(var hasher = HashAlgorithm.Create(this.checksumName))
             {
                 var fileStream = new FileStream(filepath, FileMode.Open);
-
                 return new FileResult
                 {
                     FilePath = canonicalPath,
-                    HashValue = Encoding.ASCII.GetString(hasher.ComputeHash(fileStream)),
+                    HashValue = BitConverter.ToString(hasher.ComputeHash(fileStream)).Replace("-",""),
                     Size = fileStream.Length,
                     ModifiedDate = File.GetLastWriteTime(filepath)
                 };
@@ -134,6 +132,7 @@ namespace LanguageBenchmark
 
             var lines = new List<Results.Line>();
 
+            // Flatten the results
             foreach(var action in result)
             {
                 var operation = action.Key;
