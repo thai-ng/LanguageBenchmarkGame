@@ -13,6 +13,8 @@ const SymbolMap = new Map<string, string>([["ADD","+"],["UNCHANGED","="],["CONFL
 
 async function scanDirectory(directoryPath: string, args: ArgumentHolder) : Promise<Map<string, FileResult>>{
     let retVal = new Map<string,FileResult>()
+    const timeZoneOffset = ((new Date()).getTimezoneOffset()) * 60 * 1000
+    const cutIndex = directoryPath.length + 1
 
     await directory.walk(directoryPath, async function(filepath: string) {
         const hasher = args.getChecksumObject()
@@ -23,13 +25,13 @@ async function scanDirectory(directoryPath: string, args: ArgumentHolder) : Prom
         return new Promise(function(resolve, reject) {
             fileStream.on('end', () => {
                 const filehash = hasher.digest('hex')
-                const canonicalName = filepath.replace(directoryPath, '')
+                const canonicalName = filepath.substring(cutIndex)
                 retVal.set(canonicalName, 
                     new FileResult(
                         canonicalName,
                         filehash,
                         stats.size,
-                        stats.mtimeMs
+                        stats.mtimeMs - timeZoneOffset
                     ))
                 resolve()
             })
@@ -91,7 +93,13 @@ function writePatchResult(directoryName: string, patchInfo: PatchInformation, re
         .reduce((accumulator, current) => [...accumulator, ...current])
 
     const sortedLines = textResults
-        .sort((a,b) => a["1"].filepath.localeCompare(b["1"].filepath))
+        .sort(
+            (a,b) => {
+                let fileA = a["1"].filepath
+                let fileB = b["1"].filepath
+                return fileA == fileB ? 0 : fileA > fileB ? 1 : -1
+            }
+        )
 
     for(const line of sortedLines){
         if(ignoreUnchanged && line["0"]=="="){ continue }

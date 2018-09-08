@@ -24,8 +24,8 @@ export class ArgumentHolder{
 
     private regularizeDirectoryName(somePath: string){
         let cleanPath = path.normalize(somePath)
-        if(cleanPath.lastIndexOf('/') != cleanPath.length-1){
-            cleanPath = cleanPath + path.sep
+        if(cleanPath.lastIndexOf('/') == cleanPath.length-1){
+            cleanPath = cleanPath.substring(0, cleanPath.length-1)
         }
 
         return cleanPath

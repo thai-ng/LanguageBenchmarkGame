@@ -15,7 +15,7 @@ export class FileResult{
         return this.hash == another.hash
             && this.filepath == another.filepath
             && this.size == another.size
-            && this.date == another.date
+            && (this.date - another.date) < 1000
     }
 
     public toString() : string{
