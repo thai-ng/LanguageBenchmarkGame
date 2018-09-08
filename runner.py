@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 
 # This is a basic runner "harness" to manage the different languages and their trials
 # check the "runner.py" under each directory for more info
@@ -8,6 +8,7 @@ import sys, os, inspect
 def help(args = None):    
     __name__ = "__main__"
     supported_operations = [name for name, obj in inspect.getmembers(sys.modules[__name__]) if inspect.isfunction(obj)]
+    print()
     print("Language Benchmark Runner")
     print(" 'help' for this text")
     print(" 'init <language name>' to start implementing a new <language>")
@@ -15,6 +16,7 @@ def help(args = None):
     print(" 'verify <language> [space-separated arguments]' to check a given <language> against the reference")
     print(" 'benchmark <repetitions> <language> [space-separated arguments]' run an implementation and take an average time")
     print(" 'compare <comma-separated list of languages> <repetitions> [space-separated arguments]' run some implementations and compare the average time")
+    print()
 # end help
 
 def import_from(module, name):
@@ -201,8 +203,9 @@ if __name__=="__main__":
         operation = eval(operation_name)
         operation(args[1:])
     except Exception as e:
-        print("")
-        print("Encountered an issue while running: \"{}\"\n".format(e))
+        if len(args) > 0:
+            print("")
+            print("Encountered an issue while running: \"{}\"".format(e))
         help()
         os.chdir(working_dir)
 # end main
