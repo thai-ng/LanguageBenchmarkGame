@@ -5,7 +5,7 @@ import argparse, datetime
 def select_checksum(args_dict):
     """ Returns a pointer to the constructor of the correct checksum class  """
     retVal = checksums.MD5
-    options = {'adler32': checksums.Adler32, 'crc': checksums.CRC32, 'sha1': checksums.SHA1, 'sha256': checksums.SHA2, 'md5': checksums.MD5}
+    options = {'adler32': checksums.Adler32, 'crc32': checksums.CRC32, 'sha1': checksums.SHA1, 'sha256': checksums.SHA2, 'md5': checksums.MD5}
 
     for name, function in options.items():
         if args_dict[name]:
@@ -123,7 +123,7 @@ def setup_arguments():
     checksum_action = parser.add_mutually_exclusive_group()
     checksum_action.add_argument("--md5", action='store_true', help="MD5 hash (default)")
     checksum_action.add_argument("--adler32", action='store_true', help="Adler 32-bit checksum")
-    checksum_action.add_argument("--crc", action='store_true', help="Cyclic Redundancy Check 32-bit checksum")
+    checksum_action.add_argument("--crc32", action='store_true', help="Cyclic Redundancy Check 32-bit checksum")
     checksum_action.add_argument("--sha1", action='store_true', help="SHA1 hash")
     checksum_action.add_argument("--sha256", action='store_true', help="SHA256 hash")
     return parser
