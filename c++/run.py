@@ -3,7 +3,7 @@
 output_file_name = 'cpp.out'
 
 def setup():
-    import os, subprocess, datetime
+    import os, datetime
     if os.path.exists(os.path.join(os.getcwd(), "setup.log")):
         print("'setup.log' exists. C++ implementation setup correctly")
         return

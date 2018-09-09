@@ -27,9 +27,18 @@ def setup():
 
 def build():
     import subprocess, os
+    
+    # remove the previous build
+    if os.path.exists(output_file_name):
+        os.remove(output_file_name)
+    
     process_args = ['go', 'build', '-o', output_file_name]
     subprocess.call(process_args)
-    print("Built Go implementation as '{}'".format(output_file_name))
+
+    if os.path.exists(output_file_name):
+        print("Built Go implementation as '{}'".format(output_file_name))
+    else:
+        raise AssertionError("Build failed")
 #end run
 
 def run(cmd_args):

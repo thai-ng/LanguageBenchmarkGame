@@ -7,9 +7,11 @@ import sys, os, inspect
 
 def help(args = None):    
     __name__ = "__main__"
-    supported_operations = [name for name, obj in inspect.getmembers(sys.modules[__name__]) if inspect.isfunction(obj)]
+    supported_operations = [name for name, obj in inspect.getmembers(sys.modules[__name__]) if inspect.isfunction(obj) and "__" not in name]
     print()
     print("Language Benchmark Runner")
+    print(supported_operations)
+    print()
     print(" 'help' for this text")
     print(" 'init <language name>' to start implementing a new <language>")
     print(" 'run <language> [space-separated arguments]' to run a given <language> implementation with a set of [arguments]")
@@ -154,7 +156,7 @@ def benchmark(args, return_times = False):
     setup()
     build()
     print("========== Starting Benchmark ==========")
-    for i in range(repetitions):
+    for _ in range(repetitions):
         start_time = time.perf_counter()
         run_implementation(sub_args)
         end_time = time.perf_counter()

@@ -19,7 +19,7 @@ def scan_directory(dir_name, checksum):
     BUFFER_SIZE = 64 * 1024 # 4KB
 
     ret_val = {}
-    for root, dirs, files in os.walk(dir_name):
+    for root, _, files in os.walk(dir_name):
         for a_file in files:
             filepath = os.path.join(root, a_file)
             check_obj = checksum()
