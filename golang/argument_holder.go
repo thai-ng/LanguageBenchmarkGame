@@ -5,6 +5,8 @@ import (
 	"crypto/sha1"
 	"crypto/sha256"
 	"hash"
+	"hash/adler32"
+	"hash/crc32"
 	"path/filepath"
 
 	kingpin "gopkg.in/alecthomas/kingpin.v2"
@@ -51,8 +53,18 @@ func (args *ArgumentHolder) getChecksumInstance() hash.Hash {
 	return checksums[args.checksumName]()
 }
 
+func getAdler32() hash.Hash {
+	return adler32.New().(hash.Hash)
+}
+
+func getCRC32() hash.Hash {
+	return crc32.NewIEEE().(hash.Hash)
+}
+
 var checksums = map[string]checksumGenerator{
-	"md5":    md5.New,
-	"sha1":   sha1.New,
-	"sha256": sha256.New,
+	"md5":     md5.New,
+	"sha1":    sha1.New,
+	"sha256":  sha256.New,
+	"adler32": getAdler32,
+	"crc32":   getCRC32,
 }

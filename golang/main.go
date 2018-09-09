@@ -27,11 +27,11 @@ func setupArguments() ArgumentHolder {
 
 	// Mutually exclusive flag group for hashes
 	var checksums = map[string]*bool{
-		"md5":    app.Flag("md5", "MD5 hash (default)").Bool(),
-		"sha1":   app.Flag("sha1", "SHA1 hash").Bool(),
-		"sha256": app.Flag("sha256", "SHA256 hash").Bool(),
-		// adler32Hash = kingpin.Flag("adler32", "Adler 32-bit checksum").Bool()
-		// crcHash     = kingpin.Flag("crc", "Cyclic Redundancy Check 32-bit checksum").Bool()
+		"md5":     app.Flag("md5", "MD5 hash (default)").Bool(),
+		"sha1":    app.Flag("sha1", "SHA1 hash").Bool(),
+		"sha256":  app.Flag("sha256", "SHA256 hash").Bool(),
+		"adler32": app.Flag("adler32", "Adler 32-bit checksum").Bool(),
+		"crc32":   app.Flag("crc32", "Cyclic Redundancy Check 32-bit checksum").Bool(),
 	}
 
 	var _, err = app.Parse(os.Args[1:])
