@@ -22,9 +22,11 @@ def build():
 #end run
 
 def run(cmd_args):
-    import subprocess, os
+    import subprocess
     process_args = ["node", "-r", "ts-node/register", "program.ts"] + cmd_args
-    subprocess.call(process_args)
+    retcode = subprocess.call(process_args)
+    if retcode != 0:
+        raise RuntimeError("Program run returned non-zero exit code")
 #end run
 
 if __name__=="__main__":

@@ -12,7 +12,10 @@ def run(cmd_args):
     import subprocess, os
     # The only change is that we run python2 instead of python3
     process_args = ["python2", os.path.join(os.getcwd(), '..', 'python', "program.py")] + cmd_args
-    subprocess.call(process_args)
+    
+    retcode = subprocess.call(process_args)
+    if retcode != 0:
+        raise RuntimeError("Program run returned non-zero exit code")
 #end run
 
 if __name__=="__main__":
