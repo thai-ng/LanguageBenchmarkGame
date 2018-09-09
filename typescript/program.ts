@@ -127,7 +127,13 @@ async function writeResults(patchInformation: PatchInformationTuple, args: Argum
 }
 
 async function main(args: ArgumentHolder){
-    args.verifyArguments(commander);
+    try{
+        args.verifyArguments(commander);
+    }
+    catch{
+        process.exit(1)
+    }
+
     console.log(`Starting diff of ${args.directoryA} and ${args.directoryB} (checksum: ${args.checksumName})`)
     console.log(`Starting at ${(new Date()).toISOString()}`)
 
@@ -157,8 +163,8 @@ commander
     .option("--sha1", "SHA1 hash")
     .option("--sha256", "SHA256 hash")
     // Fast checksums not supported yet
-    //.option("--adler32", "Alder 32-bit checksum")
-    //.option("--crc", "Cyclic Redundancy Check 32-bit checksum")
+    .option("--adler32", "Alder 32-bit checksum")
+    .option("--crc32", "Cyclic Redundancy Check 32-bit checksum")
 
 commander.parse(process.argv)
 

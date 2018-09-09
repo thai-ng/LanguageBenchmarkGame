@@ -33,7 +33,15 @@ export class ArgumentHolder{
 
     private selectChecksum(args: any) {
         const options = ['md5', 'sha1', 'sha256'];
+        const notImplemented = ['crc32', 'adler32'];
         let selection = "";
+
+        notImplemented.forEach(option =>{
+            if(args[option]){
+                throw new Error(`Cannot accept checksum '${option}'. It has not been implemented yet`);
+            }
+        });
+
         options.forEach(functionName => {
             let possibleSelection = args[functionName];
             if (possibleSelection) {
@@ -44,6 +52,7 @@ export class ArgumentHolder{
                 selection = functionName;
             }
         });
+        
         if (selection.length < 1) {
             selection = 'md5';
         }
