@@ -17,6 +17,7 @@ def help(args = None):
     print(" 'benchmark <repetitions> <language> [space-separated arguments]' run an implementation and take an average time")
     print(" 'compare <comma-separated list of languages> <repetitions> [space-separated arguments]' run some implementations and compare the average time")
     print(" 'plot/boxplot <comma-separated list of languages> <repetitions> [space-separated arguments]' benchmark and plot the results")
+    print(" 'table <comma-separated list of languages> <repetitions> [space-separated arguments]' benchmark and save a table with the results")
     print()
 # end help
 
@@ -176,6 +177,7 @@ def benchmark(args, return_times = False):
 #end benchmark
 
 def compare(args, return_time_list = False, print_results = True):
+    working_dir = os.getcwd()
     dir_names = args[0].split(',')
     if len(dir_names) == 1 and dir_names[0] == 'all':
         dir_names = [x for x in os.listdir('.') if os.path.isdir(x) and os.path.exists(os.path.join('.',x,'run.py'))]
@@ -187,7 +189,14 @@ def compare(args, return_time_list = False, print_results = True):
     for implementation in dir_names:
         sub_args = [repetitions, implementation]
         sub_args.extend(args[2:])
-        results[implementation] = benchmark(sub_args, return_times=return_time_list)
+        try:
+            results[implementation] = benchmark(sub_args, return_times=return_time_list)
+        except Exception as e:
+            print(e)
+            print()
+            # We need to go back to our working directory to continue
+            os.chdir(working_dir)
+            results[implementation] = None
     # end for
 
     if not print_results:
@@ -230,7 +239,10 @@ def plot(args):
     bar_chart = pygal.HorizontalBar()
     bar_chart.title = 'Language benchmark results (in seconds, lower is better)'
     [bar_chart.add(x[0], x[1]) for x in benchmark_results]
+
+    print("Opening table in web browser...")
     bar_chart.render_in_browser()
+    print("Done")
 #end plot
 
 def boxplot(args):
@@ -241,8 +253,45 @@ def boxplot(args):
     box_plot = pygal.Box()
     box_plot.title = 'Language benchmark results'
     [box_plot.add(lang, results) for lang,results in benchmark_results]
+
+    print("Opening table in web browser...")
     box_plot.render_in_browser()
+    print("Done")
 #end plot
+
+def table(args):
+    import pygal, webbrowser
+
+    # remove any "--" args since we want to inject our own
+    removable_args = [flag for flag in args if flag.startswith('--')]
+    for flag in removable_args:
+        print("Removing argument '{}'".format(flag))
+        args.remove(flag)
+
+    checksums = ["md5", "sha1", "sha256", "adler32", "crc32"]
+    languages = args[0].split(',')
+    results = {}
+    for entry in checksums:
+        results[entry] = compare(args + ['--{}'.format(entry)], return_time_list = False, print_results= False)
+    
+    chart = pygal.Bar()
+    chart.title = 'Language benchmark results (in seconds, lower is better)'
+    chart.x_labels = checksums
+
+    # for every language, insert a list into the chart with the values of each checksum
+    [chart.add(lang, [results[sample][lang] for sample in checksums]) for lang in languages]
+
+    chart.value_formatter = lambda x: '%.3f s' % x if x is not None else 'N/A'
+    result_file_name = 'results.html'
+    result_table = chart.render_table(style=True, transpose=True)
+    if result_table is not None:
+        with open(result_file_name, 'w') as output:
+            output.write(result_table)
+
+    print("Opening table in web browser...")
+    webbrowser.open("file://{}".format(os.path.join(os.getcwd(), result_file_name)))
+    print("Done")
+# end table
 
 if __name__=="__main__":
     args = sys.argv[1:]
