@@ -44,7 +44,7 @@ bool ArgumentHolder::Parse(std::vector<std::string>& args){
     this->DirectoryA = (pathA/"x").normalize().parent_path();
     this->DirectoryB = (pathB/"x").normalize().parent_path();
 
-    std::unordered_set<std::string> hashOptions = {"--md5", "--crc", "--adler32", "--sha1", "--sha256"};
+    std::unordered_set<std::string> hashOptions = {"--md5", "--crc32", "--adler32", "--sha1", "--sha256"};
     bool hasHashOption = false;
     std::string checksumName;
     for(unsigned int i=2; i < args.size() ; i++){
@@ -78,7 +78,7 @@ void ArgumentHolder::setHash(std::string hashName){
         // Default option
         return;
     }
-    else if(hashName == "crc"){
+    else if(hashName == "crc32"){
         this->Checksum = checksum_ptr( new CryptoPP::CRC32());
     }
     else if(hashName == "adler32"){
