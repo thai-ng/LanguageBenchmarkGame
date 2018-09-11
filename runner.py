@@ -243,7 +243,7 @@ def plot(args):
     [bar_chart.add(x[0], x[1]) for x in benchmark_results]
 
     print("Opening table in web browser...")
-    bar_chart.render_in_browser()
+    bar_chart.render_to_file('./result/chart.svg')
     print("Done")
 #end plot
 
@@ -257,7 +257,7 @@ def boxplot(args):
     [box_plot.add(lang, results) for lang,results in benchmark_results]
 
     print("Opening table in web browser...")
-    box_plot.render_in_browser()
+    box_plot.render_to_file('./result/chart.svg')
     print("Done")
 #end plot
 

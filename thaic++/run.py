@@ -5,7 +5,7 @@ output_file_name = 'cpp.out'
 def setup():
     import os, datetime
     if os.path.exists(os.path.join(os.getcwd(), "setup.log")):
-        print("'setup.log' exists. C++ implementation setup correctly")
+        print("'setup.log' exists. Thai's C++ implementation setup correctly")
         return
 
     # We can't really setup this successfully, we need a build system like CMake or scons for xplat support
@@ -25,11 +25,11 @@ def build():
         os.remove(output_file_name)
 
     source_files = [x for x in os.listdir('.') if x.endswith('.cpp')]
-    c_libs = ['-lboost_system', '-lboost_filesystem', '-lpthread', '-lcryptopp']
-    c_defs = ['-DNDEBUG', '-DCRYPTOPP_CXX11', '-DCRYPTOPP_CXX11_NOEXCEPT']
+    c_libs = ['-lboost_system', '-lboost_filesystem', '-lpthread', '-l:libcryptopp.a']
+    c_defs = ['-DNDEBUG']
 
     # For older versions of clang++/g++, the order of the source files matters!
-    process_args = ['clang++'] + source_files + ['-std=c++17',  '-Wall', '-pedantic',  '-Ofast', '-o', output_file_name] + c_libs + c_defs
+    process_args = ['clang++'] + source_files + ['-std=c++17',  '-Wall', '-pedantic',  '-O3', '-o', output_file_name] + c_libs + c_defs
     subprocess.call(process_args)
 
     if os.path.exists(output_file_name):
